@@ -56,6 +56,14 @@ Archetype = Literal[
 TemplateId = Literal["modern", "classic", "compact"]
 RenderFormat = Literal["html", "pdf"]
 
+TailorTiebreaker = Literal["input_order", "length_desc", "length_asc"]
+"""How stub mode breaks ties when bullets share a keyword-overlap score.
+
+* ``input_order`` — preserve the order the user typed (default; tests-friendly).
+* ``length_desc`` — longer bullets first (often the more substantive ones).
+* ``length_asc`` — shorter bullets first (denser one-pagers).
+"""
+
 
 class _Strict(BaseModel):
     """Common config: forbid unknown fields, strip surrounding whitespace."""
@@ -138,9 +146,21 @@ class JobDescription(_Strict):
     archetype_override: Archetype | None = None
 
 
+class TailorSettings(_Strict):
+    """User-controlled knobs persisted client-side and sent per request.
+
+    Kept separate from ``ResumeInput`` and ``JobDescription`` so the resume
+    payload stays a pure description of facts, and so a future settings UI
+    has a single, discoverable surface to bind to.
+    """
+
+    tiebreaker: TailorTiebreaker = "input_order"
+
+
 class TailorRequest(_Strict):
     resume: ResumeInput
     jd: JobDescription
+    settings: TailorSettings = Field(default_factory=TailorSettings)
 
 
 class TailoredExperience(_Strict):
@@ -233,6 +253,8 @@ __all__ = [
     "StoryId",
     "TailorRequest",
     "TailorResult",
+    "TailorSettings",
+    "TailorTiebreaker",
     "TailoredExperience",
     "TemplateId",
     "TemplateMeta",
