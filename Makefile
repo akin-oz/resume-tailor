@@ -1,4 +1,4 @@
-.PHONY: install dev api web test lint format typecheck check
+.PHONY: install dev api web test lint format format-check typecheck check
 
 install:
 	uv sync --all-extras
@@ -20,7 +20,10 @@ lint:
 format:
 	uv run ruff format .
 
+format-check:
+	uv run ruff format --check .
+
 typecheck:
 	uv run mypy
 
-check: lint typecheck test
+check: lint format-check typecheck test
