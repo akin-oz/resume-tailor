@@ -18,6 +18,8 @@ make dev
 
 No API key required. Without `OPENAI_API_KEY`, the tailor runs in **deterministic stub mode**: each bullet you tag with keywords (`"ownership"`, `"product management"`, `"mentoring"`, …) is scored against the JD by case-insensitive overlap, and the top-N per role are picked. Skills get the same treatment. The frontend is fully usable; tests run green.
 
+With a key, the same endpoint dispatches to OpenAI under the strict bullet-pool contract: the model returns IDs from your bullet pool, gets validated server-side (unknown IDs dropped, profile checked against banned phrases / em-dashes / 45–75 word window — bad output falls back to a clean `profile_seed` truncation, never to a hallucinated profile).
+
 With a key:
 
 ```bash
