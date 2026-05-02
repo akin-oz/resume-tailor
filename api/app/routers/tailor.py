@@ -15,6 +15,10 @@ from ..domain.tailor import tailor_stub
 router = APIRouter()
 
 
-@router.post("/tailor", response_model=TailorResult)
+@router.post(
+    "/tailor",
+    response_model=TailorResult,
+    response_model_by_alias=True,
+)
 def tailor(req: TailorRequest) -> TailorResult:
     return tailor_stub(req)

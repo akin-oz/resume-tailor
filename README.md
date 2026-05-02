@@ -29,7 +29,7 @@ make dev
 
 ## Architecture
 
-```
+```text
 api/           FastAPI + Pydantic v2 + Playwright
   app/
     domain/   Pure functions: tailor.py, render.py, archetype.py

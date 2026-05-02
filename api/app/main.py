@@ -31,7 +31,7 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 
-@app.get("/healthz", response_model=HealthStatus)
+@app.get("/healthz", response_model=HealthStatus, response_model_by_alias=True)
 def healthz() -> HealthStatus:
     # Playwright wires up with the render slice; OpenAI with the AI tailor slice.
     return HealthStatus(
