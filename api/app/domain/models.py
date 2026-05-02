@@ -77,10 +77,21 @@ class Contact(_Strict):
 
 
 class Story(_Strict):
-    """A single accomplishment bullet authored by the user."""
+    """A single accomplishment bullet authored by the user.
+
+    `keywords` are user-attached tags (e.g. "ownership", "product management",
+    "mentoring"). They drive stub-mode ranking via JD overlap and are passed
+    to the AI as additional context when a key is configured. Free-form so the
+    user controls their own taxonomy; matching is case-insensitive.
+    """
 
     id: StoryId
     text: str = Field(min_length=1, max_length=400)
+    keywords: list[str] = Field(
+        default_factory=list,
+        max_length=20,
+        description="User-attached tags. Ranked against the JD in stub mode.",
+    )
 
 
 class Experience(_Strict):
