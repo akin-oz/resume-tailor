@@ -91,6 +91,27 @@ Drop a folder under `templates/<id>/` containing `template.html.j2`, `style.css`
 
 ---
 
+## Deploy
+
+The repo includes a `Dockerfile` and `fly.toml` for **Fly.io** — the friendliest free tier for a Playwright app:
+
+```bash
+fly launch --no-deploy                                           # claims name + region
+fly secrets set CORS_ORIGINS=https://your-frontend.example.com   # comma-separated list
+fly secrets set OPENAI_API_KEY=sk-...                            # optional; stub mode runs without
+fly deploy
+```
+
+Defaults to scale-to-zero (`min_machines_running = 0`): free when idle, ~1-3s wake on the first request. Bump to `1` for instant response (~$2/mo on Fly).
+
+The Dockerfile is a two-stage build with Chromium baked in (~700MB final image). A naked `python:3.11-slim` would be smaller but couldn't render PDFs.
+
+**Frontend** (when it lands) deploys to **Cloudflare Pages** as a static Vite build — instant CDN, free forever. The two pieces are decoupled by the camelCase JSON contract; either side can move.
+
+> **Why not Vercel/Render/Lambda?** Vercel and AWS Lambda cap deploy size at 50MB — Chromium alone is 150MB+. Render's free web service spins down for 15 min, killing the <2s render promise. Fly's auto-stop machines sleep but wake fast.
+
+---
+
 ## Out of scope (deliberately)
 
 No accounts. No database. No Word/DOCX export. No scraping JDs from URLs. No "improve my bullet" rewriting. No chat UI. No multi-language. Each was considered and cut.

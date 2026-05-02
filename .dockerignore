@@ -1,0 +1,36 @@
+# Exclude everything that doesn't belong in a production image.
+.git
+.github
+.vscode
+.idea
+
+# Python build artifacts and caches
+.venv
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+dist
+build
+
+# Tests don't ship to prod (CI runs them on the source tree).
+api/tests
+
+# Frontend build artifacts (when the frontend lands)
+node_modules
+**/node_modules
+.vite
+
+# Generated previews — CI/local script writes them; not source.
+templates/*/preview.png
+
+# Local config and secrets
+.env
+.env.local
+
+# Editor leftovers
+.DS_Store
+*.swp
