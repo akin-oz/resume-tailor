@@ -1,4 +1,4 @@
-"""HTML rendering: Jinja2 + folder-based template registration.
+"""HTML + PDF rendering: Jinja2 + folder-based template registration.
 
 Each template lives in its own folder under ``templates/<id>/`` with three
 files: ``template.html.j2``, ``style.css``, and ``meta.json``. Adding a
@@ -9,8 +9,10 @@ Templates see a denormalized "renderable" dict: stories already filtered
 and ordered per the tailor's selection, so the templates themselves stay
 dumb (no ID joins, no sorting, no validation logic).
 
-PDF rendering and the other two stock templates land with the Playwright
-slice. This module is HTML-only and pure.
+PDF generation goes through WeasyPrint — a Python library, no headless
+browser. Resumes are static paged content (no JS, simple CSS), exactly
+WeasyPrint's sweet spot. Drops Docker image size by ~450MB and removes
+the browser-singleton lifespan dance entirely.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
-from playwright.async_api import Browser
+from weasyprint import HTML
 
 from .models import ResumeInput, TailorResult, TemplateId, TemplateMeta
 
@@ -107,21 +109,14 @@ def render_html(resume: ResumeInput, tailored: TailorResult, template_id: Templa
     )
 
 
-async def render_pdf(browser: Browser, html: str) -> bytes:
+def render_pdf(html: str) -> bytes:
     """Render a self-contained HTML document to A4 PDF bytes.
 
     The HTML must inline all assets (no external resources) — that's why
-    ``render_html`` inlines the stylesheet. ``prefer_css_page_size=True``
-    honors the ``@page`` size declared in the template's CSS.
+    ``render_html`` inlines the stylesheet. WeasyPrint honors the
+    ``@page`` size declared in the template's CSS.
+
+    Synchronous: WeasyPrint is fast enough (~200-500ms per resume) and
+    has no async API. FastAPI runs sync handlers in a threadpool.
     """
-    context = await browser.new_context()
-    try:
-        page = await context.new_page()
-        await page.set_content(html, wait_until="load")
-        return await page.pdf(
-            format="A4",
-            print_background=True,
-            prefer_css_page_size=True,
-        )
-    finally:
-        await context.close()
+    return HTML(string=html).write_pdf()  # type: ignore[no-any-return]

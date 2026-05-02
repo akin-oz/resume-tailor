@@ -30,20 +30,17 @@ jobs:
       - name: Set up Python
         run: uv python install
 
+      - name: Install WeasyPrint system libs
+        # Cairo, Pango, and friends. Cheap on Ubuntu runners.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2 libpango-1.0-0 libpangoft2-1.0-0 \
+            libharfbuzz0b libfontconfig1 \
+            fonts-liberation fonts-noto-color-emoji
+
       - name: Install deps
         run: uv sync --all-extras --frozen
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-
-      - name: Install Playwright Chromium
-        # --with-deps installs system libraries needed for headless Chromium.
-        # Cheap when the browser binary is already cached.
-        run: uv run playwright install --with-deps chromium
 
       # Each step is its own action so the PR UI shows exactly which check failed.
       - name: Ruff lint

@@ -3,22 +3,17 @@
 Usage:
     uv run python scripts/build_previews.py
 
-Renders the same fixture resume through each template, screenshots the
-result at thumbnail size, and writes the PNG into the template folder so
-``GET /api/templates/<id>/preview`` serves it.
-
-Run after editing a template's CSS or markup. CI runs this and commits
-the result is a possible future workflow; for now, regenerate locally
-when you change a template.
+Renders the same fixture resume through each template (HTML → WeasyPrint
+→ PDF), then rasterizes the first page via pypdfium2 to produce a
+thumbnail PNG. Pure Python, no browser needed.
 """
 
 from __future__ import annotations
 
-import asyncio
+import io
 import sys
 from pathlib import Path
 
-# Make the api package importable when running from the project root.
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "api"))
 
@@ -31,9 +26,13 @@ from app.domain.models import (  # noqa: E402
     TailorRequest,
     TailorSettings,
 )
-from app.domain.render import TEMPLATES_DIR, load_templates, render_html  # noqa: E402
+from app.domain.render import (  # noqa: E402
+    TEMPLATES_DIR,
+    load_templates,
+    render_html,
+    render_pdf,
+)
 from app.domain.tailor import tailor_stub  # noqa: E402
-from playwright.async_api import async_playwright  # noqa: E402
 
 PREVIEW_WIDTH = 600
 PREVIEW_HEIGHT = 800
@@ -91,32 +90,40 @@ def _fixture() -> tuple[ResumeInput, JobDescription]:
     return resume, jd
 
 
-async def build() -> None:
+def _pdf_first_page_to_png(pdf_bytes: bytes, target: Path) -> None:
+    """Rasterize the first page of a PDF into a PNG sized for thumbnail use."""
+    import pypdfium2 as pdfium
+
+    pdf = pdfium.PdfDocument(io.BytesIO(pdf_bytes))
+    try:
+        page = pdf[0]
+        # WeasyPrint outputs A4 at 72 DPI; PREVIEW_HEIGHT/A4_height is the scale.
+        # A4 = 11.69 inches tall = 842 points. Aim for PREVIEW_HEIGHT pixels tall.
+        scale = PREVIEW_HEIGHT / 842.0
+        bitmap = page.render(scale=scale)
+        image = bitmap.to_pil()
+        # Crop/pad to PREVIEW_WIDTH so the thumbnail size is consistent.
+        if image.width > PREVIEW_WIDTH:
+            image = image.crop((0, 0, PREVIEW_WIDTH, image.height))
+        image.save(target, format="PNG")
+    finally:
+        pdf.close()
+
+
+def build() -> None:
     templates = load_templates()
     if not templates:
         print("No templates registered.", file=sys.stderr)
         return
     resume, jd = _fixture()
     tailored = tailor_stub(TailorRequest(resume=resume, jd=jd, settings=TailorSettings()))
-    async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
-        context = await browser.new_context(
-            viewport={"width": PREVIEW_WIDTH, "height": PREVIEW_HEIGHT},
-            device_scale_factor=2,
-        )
-        try:
-            for tpl_id in templates:
-                html = render_html(resume, tailored, tpl_id)
-                page = await context.new_page()
-                await page.set_content(html, wait_until="load")
-                target = TEMPLATES_DIR / tpl_id / "preview.png"
-                await page.screenshot(path=str(target), full_page=False)
-                await page.close()
-                print(f"  wrote {target.relative_to(ROOT)}")
-        finally:
-            await context.close()
-            await browser.close()
+    for tpl_id in templates:
+        html = render_html(resume, tailored, tpl_id)
+        pdf_bytes = render_pdf(html)
+        target = TEMPLATES_DIR / tpl_id / "preview.png"
+        _pdf_first_page_to_png(pdf_bytes, target)
+        print(f"  wrote {target.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
-    asyncio.run(build())
+    build()

@@ -112,38 +112,11 @@ def test_post_render_html(resume: ResumeInput, jd_backend: JobDescription) -> No
     assert "<!DOCTYPE html>" in r.text
 
 
-def test_post_render_pdf_with_browser(resume: ResumeInput, jd_backend: JobDescription) -> None:
+def test_post_render_pdf(resume: ResumeInput, jd_backend: JobDescription) -> None:
     """End-to-end: POST /api/render with format=pdf returns real PDF bytes.
 
-    Uses TestClient as a context manager so lifespan runs and Playwright
-    starts. Skips if the Chromium binary isn't installed (e.g. on a fresh
-    machine where ``make install-browsers`` hasn't run).
-    """
-    import pytest
-
-    tailored = _tailored(resume, jd_backend)
-    payload = {
-        "resume": resume.model_dump(by_alias=True, mode="json"),
-        "tailored": tailored.model_dump(by_alias=True, mode="json"),
-        "templateId": "modern",
-        "format": "pdf",
-    }
-    with TestClient(app) as lifespan_client:
-        if not lifespan_client.get("/healthz").json()["playwright"]:
-            pytest.skip("Playwright Chromium not installed; skipping PDF render test")
-        r = lifespan_client.post("/api/render", json=payload)
-    assert r.status_code == 200, r.text
-    assert r.headers["content-type"] == "application/pdf"
-    # Real PDF magic bytes and non-trivial body.
-    assert r.content[:5] == b"%PDF-"
-    assert len(r.content) > 1000
-
-
-def test_post_render_pdf_without_browser(resume: ResumeInput, jd_backend: JobDescription) -> None:
-    """The module-level client doesn't trigger lifespan, so no browser.
-
-    The route should return 503 problem+json with a clear remediation
-    hint, not a 500.
+    No skip dance — WeasyPrint is a Python library, always available
+    once deps are installed.
     """
     tailored = _tailored(resume, jd_backend)
     payload = {
@@ -153,9 +126,11 @@ def test_post_render_pdf_without_browser(resume: ResumeInput, jd_backend: JobDes
         "format": "pdf",
     }
     r = client.post("/api/render", json=payload)
-    assert r.status_code == 503
-    assert r.headers["content-type"].startswith("application/problem+json")
-    assert "install-browsers" in r.json()["detail"]
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "application/pdf"
+    # PDF magic bytes and non-trivial body.
+    assert r.content[:5] == b"%PDF-"
+    assert len(r.content) > 1000
 
 
 def test_post_render_unknown_template_404(resume: ResumeInput, jd_backend: JobDescription) -> None:

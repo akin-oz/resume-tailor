@@ -250,7 +250,7 @@ class TemplateMeta(_Strict):
 
 class HealthStatus(_Strict):
     status: Literal["ok", "degraded"]
-    playwright: bool
+    pdf: bool
     openai: bool
 
 

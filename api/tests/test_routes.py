@@ -13,7 +13,7 @@ def test_healthz() -> None:
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["playwright"] is False
+    assert body["pdf"] is True
     assert isinstance(body["openai"], bool)
 
 

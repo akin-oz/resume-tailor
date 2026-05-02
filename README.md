@@ -78,10 +78,10 @@ FastAPI gives us Pydantic v2 (the same domain types we'd want for validation, se
 | GET    | `/api/templates`                      | List templates with preview URLs                                    |
 | GET    | `/api/templates/{id}/preview`         | Template preview PNG (404 until `make previews` runs)               |
 | POST   | `/api/tailor`                         | Validated `TailorResult` (3–8s with AI; <100ms in stub mode)        |
-| POST   | `/api/render`                         | `text/html` (always) or `application/pdf` (needs Playwright)        |
-| GET    | `/healthz`                            | `{ status, playwright, openai }`                                    |
+| POST   | `/api/render`                         | `text/html` or `application/pdf` (~200–500ms via WeasyPrint)        |
+| GET    | `/healthz`                            | `{ status, pdf, openai }`                                           |
 
-PDF rendering requires a Playwright Chromium binary. Run `make install-browsers` once after `make install` (or set up CI with the same step). Without it, `/healthz` reports `playwright: false` and the PDF route returns 503 problem+json with a clear hint rather than crashing.
+PDF rendering uses **WeasyPrint** — a Python library, no headless browser. Resumes are static paged content (no JS, simple CSS), exactly its sweet spot. WeasyPrint needs Cairo, Pango, and font libs at runtime; on Debian/Ubuntu install with `apt install libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 fonts-liberation`. The Dockerfile bakes them in.
 
 Errors are RFC 7807 `application/problem+json`. OpenAI `RateLimitError` / `APIConnectionError` / timeouts map to **503** with a `retryAfter` hint, not a generic 500.
 
@@ -106,7 +106,7 @@ fly deploy
 
 Defaults to scale-to-zero (`min_machines_running = 0`): free when idle, ~1-3s wake on the first request. Bump to `1` for instant response (~$2/mo on Fly).
 
-The Dockerfile is a two-stage build with Chromium baked in (~700MB final image). A naked `python:3.11-slim` would be smaller but couldn't render PDFs.
+The Dockerfile is a two-stage build, ~250MB final. WeasyPrint replaced Playwright/Chromium for PDF — same fidelity for static resume content, ~450MB lighter image, no browser singleton dance.
 
 **Frontend** (when it lands) deploys to **Cloudflare Pages** as a static Vite build — instant CDN, free forever. The two pieces are decoupled by the camelCase JSON contract; either side can move.
 
