@@ -1,0 +1,6 @@
+{
+  "id": "compact",
+  "name": "Compact",
+  "description": "Sans-serif, denser line-height and smaller margins. For dense histories that need to fit on one page.",
+  "previewUrl": "/api/templates/compact/preview"
+}

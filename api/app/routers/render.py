@@ -1,18 +1,25 @@
 """Render routes: GET /api/templates and POST /api/render.
 
-PDF rendering returns 501 problem+json until the Playwright slice lands.
-HTML rendering is fully usable now.
+PDF rendering requires a Playwright Chromium binary. When the browser
+isn't available, the route returns 503 problem+json with a clear hint
+rather than 500 — the user can still get HTML output.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from typing import Annotated
 
+from fastapi import APIRouter, Depends
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from playwright.async_api import Browser
+
+from .._browser import get_browser
 from ..domain.models import Problem, RenderRequest, TemplateMeta
-from ..domain.render import TEMPLATES_DIR, load_templates, render_html
+from ..domain.render import TEMPLATES_DIR, load_templates, render_html, render_pdf
 
 router = APIRouter()
+
+BrowserDep = Annotated[Browser | None, Depends(get_browser)]
 
 # Loaded once at import; restart the app to pick up new template folders.
 _TEMPLATES: dict[str, TemplateMeta] = load_templates()
@@ -45,16 +52,20 @@ def template_preview(template_id: str) -> Response:
 
 
 @router.post("/render")
-def render(req: RenderRequest) -> Response:
+async def render(req: RenderRequest, browser: BrowserDep) -> Response:
     if req.template_id not in _TEMPLATES:
         return _problem(
             404, "Unknown template", f"no template registered with id={req.template_id}"
         )
-    if req.format == "pdf":
-        return _problem(
-            501,
-            "PDF rendering not implemented",
-            "PDF render lands with the Playwright slice. Use format='html' for now.",
-        )
     html = render_html(req.resume, req.tailored, req.template_id)
-    return HTMLResponse(content=html)
+    if req.format == "html":
+        return HTMLResponse(content=html)
+    if browser is None:
+        return _problem(
+            503,
+            "PDF rendering unavailable",
+            "Chromium isn't installed. Run `make install-browsers` (or "
+            "`uv run playwright install chromium`) and restart the server.",
+        )
+    pdf_bytes = await render_pdf(browser, html)
+    return Response(content=pdf_bytes, media_type="application/pdf")

@@ -22,9 +22,9 @@ def _tailored(resume: ResumeInput, jd: JobDescription) -> TailorResult:
     return tailor_stub(make_request(resume, jd))
 
 
-def test_load_templates_finds_modern() -> None:
+def test_load_templates_finds_all_three() -> None:
     templates = load_templates()
-    assert "modern" in templates
+    assert {"modern", "classic", "compact"} <= set(templates)
     assert templates["modern"].name == "Modern"
 
 
@@ -112,9 +112,39 @@ def test_post_render_html(resume: ResumeInput, jd_backend: JobDescription) -> No
     assert "<!DOCTYPE html>" in r.text
 
 
-def test_post_render_pdf_returns_501_problem(
-    resume: ResumeInput, jd_backend: JobDescription
-) -> None:
+def test_post_render_pdf_with_browser(resume: ResumeInput, jd_backend: JobDescription) -> None:
+    """End-to-end: POST /api/render with format=pdf returns real PDF bytes.
+
+    Uses TestClient as a context manager so lifespan runs and Playwright
+    starts. Skips if the Chromium binary isn't installed (e.g. on a fresh
+    machine where ``make install-browsers`` hasn't run).
+    """
+    import pytest
+
+    tailored = _tailored(resume, jd_backend)
+    payload = {
+        "resume": resume.model_dump(by_alias=True, mode="json"),
+        "tailored": tailored.model_dump(by_alias=True, mode="json"),
+        "templateId": "modern",
+        "format": "pdf",
+    }
+    with TestClient(app) as lifespan_client:
+        if not lifespan_client.get("/healthz").json()["playwright"]:
+            pytest.skip("Playwright Chromium not installed; skipping PDF render test")
+        r = lifespan_client.post("/api/render", json=payload)
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "application/pdf"
+    # Real PDF magic bytes and non-trivial body.
+    assert r.content[:5] == b"%PDF-"
+    assert len(r.content) > 1000
+
+
+def test_post_render_pdf_without_browser(resume: ResumeInput, jd_backend: JobDescription) -> None:
+    """The module-level client doesn't trigger lifespan, so no browser.
+
+    The route should return 503 problem+json with a clear remediation
+    hint, not a 500.
+    """
     tailored = _tailored(resume, jd_backend)
     payload = {
         "resume": resume.model_dump(by_alias=True, mode="json"),
@@ -123,26 +153,23 @@ def test_post_render_pdf_returns_501_problem(
         "format": "pdf",
     }
     r = client.post("/api/render", json=payload)
-    assert r.status_code == 501
+    assert r.status_code == 503
     assert r.headers["content-type"].startswith("application/problem+json")
-    assert r.json()["title"] == "PDF rendering not implemented"
+    assert "install-browsers" in r.json()["detail"]
 
 
-def test_post_render_unregistered_template_404(
-    resume: ResumeInput, jd_backend: JobDescription
-) -> None:
-    # "compact" is in the TemplateId literal but the folder isn't registered
-    # yet — it lands with the next slice.
+def test_post_render_unknown_template_404(resume: ResumeInput, jd_backend: JobDescription) -> None:
+    # "compact" is now registered, so test with a string that fails the
+    # TemplateId Literal validation entirely.
     tailored = _tailored(resume, jd_backend)
     payload = {
         "resume": resume.model_dump(by_alias=True, mode="json"),
         "tailored": tailored.model_dump(by_alias=True, mode="json"),
-        "templateId": "compact",
+        "templateId": "no-such-template",
         "format": "html",
     }
     r = client.post("/api/render", json=payload)
-    assert r.status_code == 404
-    assert r.headers["content-type"].startswith("application/problem+json")
+    assert r.status_code == 422  # Pydantic literal mismatch
 
 
 def test_template_preview_404_when_missing() -> None:

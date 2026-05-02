@@ -74,10 +74,12 @@ FastAPI gives us Pydantic v2 (the same domain types we'd want for validation, se
 | Method | Path                                  | Description                                                         |
 | ------ | ------------------------------------- | ------------------------------------------------------------------- |
 | GET    | `/api/templates`                      | List templates with preview URLs                                    |
-| GET    | `/api/templates/{id}/preview`         | Template preview PNG (404 until `scripts/build_previews.py` runs)   |
+| GET    | `/api/templates/{id}/preview`         | Template preview PNG (404 until `make previews` runs)               |
 | POST   | `/api/tailor`                         | Validated `TailorResult` (3–8s with AI; <100ms in stub mode)        |
-| POST   | `/api/render`                         | `text/html` or `application/pdf` (PDF lands with Playwright slice)  |
+| POST   | `/api/render`                         | `text/html` (always) or `application/pdf` (needs Playwright)        |
 | GET    | `/healthz`                            | `{ status, playwright, openai }`                                    |
+
+PDF rendering requires a Playwright Chromium binary. Run `make install-browsers` once after `make install` (or set up CI with the same step). Without it, `/healthz` reports `playwright: false` and the PDF route returns 503 problem+json with a clear hint rather than crashing.
 
 Errors are RFC 7807 `application/problem+json`. OpenAI `RateLimitError` / `APIConnectionError` / timeouts map to **503** with a `retryAfter` hint, not a generic 500.
 

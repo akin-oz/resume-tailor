@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from playwright.async_api import Browser
 
 from .models import ResumeInput, TailorResult, TemplateId, TemplateMeta
 
@@ -104,3 +105,23 @@ def render_html(resume: ResumeInput, tailored: TailorResult, template_id: Templa
         **project_for_render(resume, tailored),
         stylesheet=stylesheet,
     )
+
+
+async def render_pdf(browser: Browser, html: str) -> bytes:
+    """Render a self-contained HTML document to A4 PDF bytes.
+
+    The HTML must inline all assets (no external resources) — that's why
+    ``render_html`` inlines the stylesheet. ``prefer_css_page_size=True``
+    honors the ``@page`` size declared in the template's CSS.
+    """
+    context = await browser.new_context()
+    try:
+        page = await context.new_page()
+        await page.set_content(html, wait_until="load")
+        return await page.pdf(
+            format="A4",
+            print_background=True,
+            prefer_css_page_size=True,
+        )
+    finally:
+        await context.close()

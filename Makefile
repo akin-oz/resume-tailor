@@ -1,10 +1,16 @@
-.PHONY: install dev api web test lint format format-check typecheck check
+.PHONY: install install-browsers dev api web test lint format format-check typecheck check previews
 
 install:
 	uv sync --all-extras
 
+install-browsers:
+	uv run playwright install chromium
+
 api:
 	uv run uvicorn app.main:app --reload --app-dir api --port 8000
+
+previews:
+	uv run python scripts/build_previews.py
 
 web:
 	@echo "Frontend lands in a later slice."

@@ -22,3 +22,6 @@ node_modules/
 # Local config
 .env
 .env.local
+
+# Generated template previews (regenerate with `make previews`).
+templates/*/preview.png
