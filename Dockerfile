@@ -48,5 +48,9 @@ COPY . .
 RUN useradd -m -u 1000 app && chown -R app:app /app
 USER app
 
-EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV PORT=8080
+EXPOSE 8080
+# sh -c so $PORT is honored at runtime (Cloud Run sets it; local override
+# via `docker run -e PORT=9000`). exec keeps uvicorn as PID 1 for clean
+# signal handling on container shutdown.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

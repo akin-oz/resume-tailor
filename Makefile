@@ -1,4 +1,4 @@
-.PHONY: install install-web dev api web test lint format format-check typecheck check previews build-web deploy-web
+.PHONY: install install-web dev api web test lint format format-check typecheck check previews build-web deploy-web deploy-api
 
 install:
 	uv sync --all-extras
@@ -29,6 +29,22 @@ build-web:
 # CLOUDFLARE_API_TOKEN in the environment (or `wrangler login` first).
 deploy-web: build-web
 	cd web && npx wrangler deploy
+
+# Deploy backend to Google Cloud Run from source. Cloud Run handles
+# the Docker build via Buildpacks/our Dockerfile and pushes to Artifact
+# Registry. Set GCP_PROJECT; GCP_REGION defaults to us-central1.
+# Memory cap of 512Mi keeps us well under the always-free tier.
+deploy-api:
+	@if [ -z "$(GCP_PROJECT)" ]; then echo "Set GCP_PROJECT=your-project-id"; exit 1; fi
+	gcloud run deploy resume-tailor-api \
+		--source . \
+		--project $(GCP_PROJECT) \
+		--region $(or $(GCP_REGION),us-central1) \
+		--allow-unauthenticated \
+		--memory 512Mi \
+		--cpu 1 \
+		--max-instances 5 \
+		--port 8080
 
 test:
 	uv run pytest

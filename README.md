@@ -98,35 +98,46 @@ Drop a folder under `templates/<id>/` containing `template.html.j2`, `style.css`
 
 Two pieces, two providers — decoupled by the camelCase JSON contract.
 
-### Backend → Fly.io
+### Backend → Google Cloud Run
 
-WeasyPrint needs Cairo + Pango at runtime, which rules out Cloudflare Workers / Vercel / Lambda. Fly is the lightest deploy that fits.
+WeasyPrint needs Cairo + Pango at runtime, so the backend needs a real Linux container host. Cloud Run is the cleanest free-forever fit: scales to zero, ~1-3s cold start, 2M requests/month + 180k vCPU-seconds in the always-free tier (a portfolio demo won't come close).
+
+One-time setup (per GCP project):
 
 ```bash
-fly launch --no-deploy                                  # claims name + region
-fly secrets set CORS_ORIGINS=https://<your-web-host>    # comma-separated list
-fly secrets set OPENAI_API_KEY=sk-...                   # optional; stub mode runs without
-fly deploy
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
-Defaults to `min_machines_running = 0` (scale-to-zero): free when idle, ~1-3s wake on the first request. Bump to 1 for instant response. The Dockerfile is a two-stage build, ~250MB final.
+Deploy (Cloud Run reads the `Dockerfile` and builds on the fly):
+
+```bash
+GCP_PROJECT=YOUR_PROJECT_ID make deploy-api
+
+# Then wire up CORS for the frontend and (optionally) OpenAI:
+gcloud run services update resume-tailor-api --region us-central1 \
+  --set-env-vars CORS_ORIGINS=https://resume-tailor-web.<account>.workers.dev
+gcloud run services update resume-tailor-api --region us-central1 \
+  --update-secrets OPENAI_API_KEY=openai-key:latest   # store via Secret Manager
+```
+
+The Dockerfile honors `$PORT` (Cloud Run sets it to 8080) and exposes 8080 by default. Memory cap is 512Mi — generous for what we run, well inside the free CPU/memory budget.
 
 ### Frontend → Cloudflare Workers (Static Assets)
 
 The new `assets`-only deploy pattern that supersedes Pages for SPAs. Single command — Wrangler uploads `dist/` to the global edge.
 
 ```bash
-# Set this so the production bundle hardcodes the backend URL:
-echo "VITE_API_BASE=https://<your-fly-app>.fly.dev" > web/.env.production
+# Hardcode the deployed backend URL into the production bundle:
+echo "VITE_API_BASE=https://resume-tailor-api-<hash>-<region>.a.run.app" > web/.env.production
 
 CLOUDFLARE_API_TOKEN=cf_... make deploy-web
 ```
 
-The token needs **Workers Scripts: Edit** permission on the account (create at `dash.cloudflare.com/profile/api-tokens` → "Edit Cloudflare Workers" template).
+The token needs **Workers Scripts: Edit** scoped to the account (create at `dash.cloudflare.com/profile/api-tokens` → "Edit Cloudflare Workers" template).
 
-After both are deployed, double-check `CORS_ORIGINS` on the backend matches the Workers URL exactly (`https://resume-tailor-web.<account>.workers.dev`).
-
-> **Why not Vercel/Render/Lambda?** Vercel and AWS Lambda cap deploy size at 50MB — Chromium alone (with Playwright) was 150MB+; even the WeasyPrint stack with native libs is tight. Render's free web service spins down for 15 min, killing the <2s render promise. Fly's auto-stop machines sleep but wake fast.
+> **Why not Fly/Vercel/Render/Lambda?** Fly removed the free hobby tier (now $5/mo min). Vercel and AWS Lambda cap deploy size at 50MB — even the WeasyPrint stack with native libs is tight. Render's free web service spins down for 15 min, killing the <2s render promise. Cloud Run's free tier is generous *and* its cold start is fast.
 
 ---
 
