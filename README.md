@@ -71,12 +71,13 @@ FastAPI gives us Pydantic v2 (the same domain types we'd want for validation, se
 
 ## API
 
-| Method | Path             | Description                                                         |
-| ------ | ---------------- | ------------------------------------------------------------------- |
-| GET    | `/api/templates` | List templates with preview URLs                                    |
-| POST   | `/api/tailor`    | Validated `TailorResult` (3–8s)                                     |
-| POST   | `/api/render`    | `text/html` or `application/pdf` (streamed)                         |
-| GET    | `/healthz`       | `{ status, playwright, openai }`                                    |
+| Method | Path                                  | Description                                                         |
+| ------ | ------------------------------------- | ------------------------------------------------------------------- |
+| GET    | `/api/templates`                      | List templates with preview URLs                                    |
+| GET    | `/api/templates/{id}/preview`         | Template preview PNG (404 until `scripts/build_previews.py` runs)   |
+| POST   | `/api/tailor`                         | Validated `TailorResult` (3–8s with AI; <100ms in stub mode)        |
+| POST   | `/api/render`                         | `text/html` or `application/pdf` (PDF lands with Playwright slice)  |
+| GET    | `/healthz`                            | `{ status, playwright, openai }`                                    |
 
 Errors are RFC 7807 `application/problem+json`. OpenAI `RateLimitError` / `APIConnectionError` / timeouts map to **503** with a `retryAfter` hint, not a generic 500.
 
