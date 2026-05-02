@@ -5,8 +5,10 @@ import type {
   TemplateMeta,
 } from "./types";
 
-// Same-origin in dev (Vite proxy) and in production (single host).
-const BASE = "";
+// Same-origin in dev (Vite proxy) by default. In production builds, set
+// VITE_API_BASE to the deployed backend URL — the frontend lives on
+// Cloudflare while the backend (with WeasyPrint native libs) lives elsewhere.
+const BASE = import.meta.env.VITE_API_BASE ?? "";
 
 async function jsonOrThrow<T>(r: Response): Promise<T> {
   if (!r.ok) {

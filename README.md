@@ -96,22 +96,37 @@ Drop a folder under `templates/<id>/` containing `template.html.j2`, `style.css`
 
 ## Deploy
 
-The repo includes a `Dockerfile` and `fly.toml` for **Fly.io** — the friendliest free tier for a Playwright app:
+Two pieces, two providers — decoupled by the camelCase JSON contract.
+
+### Backend → Fly.io
+
+WeasyPrint needs Cairo + Pango at runtime, which rules out Cloudflare Workers / Vercel / Lambda. Fly is the lightest deploy that fits.
 
 ```bash
-fly launch --no-deploy                                           # claims name + region
-fly secrets set CORS_ORIGINS=https://your-frontend.example.com   # comma-separated list
-fly secrets set OPENAI_API_KEY=sk-...                            # optional; stub mode runs without
+fly launch --no-deploy                                  # claims name + region
+fly secrets set CORS_ORIGINS=https://<your-web-host>    # comma-separated list
+fly secrets set OPENAI_API_KEY=sk-...                   # optional; stub mode runs without
 fly deploy
 ```
 
-Defaults to scale-to-zero (`min_machines_running = 0`): free when idle, ~1-3s wake on the first request. Bump to `1` for instant response (~$2/mo on Fly).
+Defaults to `min_machines_running = 0` (scale-to-zero): free when idle, ~1-3s wake on the first request. Bump to 1 for instant response. The Dockerfile is a two-stage build, ~250MB final.
 
-The Dockerfile is a two-stage build, ~250MB final. WeasyPrint replaced Playwright/Chromium for PDF — same fidelity for static resume content, ~450MB lighter image, no browser singleton dance.
+### Frontend → Cloudflare Workers (Static Assets)
 
-**Frontend** (when it lands) deploys to **Cloudflare Pages** as a static Vite build — instant CDN, free forever. The two pieces are decoupled by the camelCase JSON contract; either side can move.
+The new `assets`-only deploy pattern that supersedes Pages for SPAs. Single command — Wrangler uploads `dist/` to the global edge.
 
-> **Why not Vercel/Render/Lambda?** Vercel and AWS Lambda cap deploy size at 50MB — Chromium alone is 150MB+. Render's free web service spins down for 15 min, killing the <2s render promise. Fly's auto-stop machines sleep but wake fast.
+```bash
+# Set this so the production bundle hardcodes the backend URL:
+echo "VITE_API_BASE=https://<your-fly-app>.fly.dev" > web/.env.production
+
+CLOUDFLARE_API_TOKEN=cf_... make deploy-web
+```
+
+The token needs **Workers Scripts: Edit** permission on the account (create at `dash.cloudflare.com/profile/api-tokens` → "Edit Cloudflare Workers" template).
+
+After both are deployed, double-check `CORS_ORIGINS` on the backend matches the Workers URL exactly (`https://resume-tailor-web.<account>.workers.dev`).
+
+> **Why not Vercel/Render/Lambda?** Vercel and AWS Lambda cap deploy size at 50MB — Chromium alone (with Playwright) was 150MB+; even the WeasyPrint stack with native libs is tight. Render's free web service spins down for 15 min, killing the <2s render promise. Fly's auto-stop machines sleep but wake fast.
 
 ---
 

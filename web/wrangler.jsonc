@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers Static Assets — the modern pattern that supersedes
+  // Pages for SPAs. `npx wrangler deploy` from this folder uploads `dist/`
+  // and serves it from the global edge. No Worker code needed.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "resume-tailor-web",
+  "compatibility_date": "2024-11-15",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
