@@ -11,7 +11,8 @@ Type your real experience once. Paste any JD. Pick a template. Get a clean, trut
 ```bash
 git clone https://github.com/akin-oz/resume-tailor.git
 cd resume-tailor
-make dev
+make install   # uv sync + npm install
+make dev       # runs api (8000) and web (5173) in parallel
 # → web:  http://localhost:5173
 # → api:  http://localhost:8000/docs
 ```

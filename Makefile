@@ -1,7 +1,11 @@
-.PHONY: install dev api web test lint format format-check typecheck check previews
+.PHONY: install install-web dev api web test lint format format-check typecheck check previews
 
 install:
 	uv sync --all-extras
+	cd web && npm install
+
+install-web:
+	cd web && npm install
 
 api:
 	uv run uvicorn app.main:app --reload --app-dir api --port 8000
@@ -10,9 +14,11 @@ previews:
 	uv run python scripts/build_previews.py
 
 web:
-	@echo "Frontend lands in a later slice."
+	cd web && npm run dev
 
-dev: api
+# Runs both servers in parallel. Stop with Ctrl-C; make kills both.
+dev:
+	$(MAKE) -j 2 api web
 
 test:
 	uv run pytest

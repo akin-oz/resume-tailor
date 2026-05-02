@@ -12,6 +12,9 @@ build/
 # Node
 node_modules/
 .vite/
+web/dist/
+web/dist-types/
+web/*.tsbuildinfo
 
 # Editors / OS
 .DS_Store
