@@ -127,7 +127,7 @@ class ResumeInput(_Strict):
     contact: Contact
     profile_seed: str = Field(
         min_length=20,
-        max_length=600,
+        max_length=1000,
         description=(
             "User's own one-paragraph self-summary. The model may rephrase "
             "but may not introduce facts not present here or in stories."
