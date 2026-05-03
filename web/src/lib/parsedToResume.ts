@@ -36,7 +36,7 @@ export function parsedToResume(parsed: ParsedResume, fallbackName: string): Resu
         start: coerceDate(e.start),
         end: coerceDate(e.end) || null,
         stories: e.stories.map((s) => ({
-          id: newStoryId(expId),
+          id: newStoryId(),
           text: s.text,
           keywords: s.keywords,
         })),

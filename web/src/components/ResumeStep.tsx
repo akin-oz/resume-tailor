@@ -232,10 +232,7 @@ function ExperienceCard({ value, onChange, onRemove }: ExpProps) {
 
   const addStory = () => {
     update({
-      stories: [
-        ...value.stories,
-        { id: newStoryId(value.id), text: "", keywords: [] },
-      ],
+      stories: [...value.stories, { id: newStoryId(), text: "", keywords: [] }],
     });
   };
 
