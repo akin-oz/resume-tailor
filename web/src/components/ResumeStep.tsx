@@ -1,4 +1,11 @@
-import type { Experience, ResumeInput, Story } from "../types";
+import { useState } from "react";
+import { postParseResume } from "../api";
+import type {
+  Experience,
+  ParsedResume,
+  ResumeInput,
+  Story,
+} from "../types";
 
 const SECTION = "rounded-lg border border-slate-200 bg-white p-4 mb-4";
 const LABEL = "block text-xs font-medium text-slate-600 mb-1";
@@ -10,8 +17,91 @@ interface Props {
   onChange: (next: ResumeInput) => void;
 }
 
+// Best-effort coerce parser date strings to YYYY[-MM]. The backend's strict
+// PartialDate rejects anything else, and "Jan 2021" / "2021-1-15" / "1/2021"
+// are all real-world inputs we'll see from PDF resumes.
+const _MONTHS: Record<string, string> = {
+  jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+  jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+};
+
+function coerceDate(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const s = raw.trim();
+  // YYYY-MM
+  let m = s.match(/(\d{4})-(\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}`;
+  // M/YYYY
+  m = s.match(/(\d{1,2})\/(\d{4})/);
+  if (m) return `${m[2]}-${m[1].padStart(2, "0")}`;
+  // Mon YYYY
+  m = s.match(/([A-Za-z]+)[a-z]*\s+(\d{4})/);
+  if (m) {
+    const mm = _MONTHS[m[1].slice(0, 3).toLowerCase()];
+    if (mm) return `${m[2]}-${mm}`;
+  }
+  // YYYY only
+  m = s.match(/(\d{4})/);
+  return m ? m[1] : "";
+}
+
+function parsedToResume(parsed: ParsedResume, fallbackName: string): ResumeInput {
+  return {
+    contact: {
+      name: parsed.contact.name || fallbackName,
+      email: parsed.contact.email || "",
+      phone: parsed.contact.phone ?? null,
+      location: parsed.contact.location ?? null,
+      linkedin: parsed.contact.linkedin ?? null,
+      github: parsed.contact.github ?? null,
+      website: parsed.contact.website ?? null,
+    },
+    profileSeed: parsed.profileSeed,
+    experiences: parsed.experiences.map((e) => {
+      const expId = `exp-${crypto.randomUUID()}`;
+      return {
+        id: expId,
+        company: e.company,
+        title: e.title,
+        location: e.location ?? null,
+        start: coerceDate(e.start),
+        end: coerceDate(e.end) || null,
+        stories: e.stories.map((s) => ({
+          id: `${expId}.${crypto.randomUUID()}`,
+          text: s.text,
+          keywords: s.keywords,
+        })),
+      };
+    }),
+    skills: parsed.skills,
+  };
+}
+
 export function ResumeStep({ value, onChange }: Props) {
   const update = (patch: Partial<ResumeInput>) => onChange({ ...value, ...patch });
+
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<ParsedResume["warnings"]>([]);
+
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    setParseError(null);
+    setWarnings([]);
+    try {
+      const parsed = await postParseResume(file);
+      onChange(parsedToResume(parsed, value.contact.name));
+      setWarnings(parsed.warnings);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setParsing(false);
+      // Allow re-uploading the same file
+      e.target.value = "";
+    }
+  };
 
   const setExperience = (idx: number, exp: Experience) => {
     const next = [...value.experiences];
@@ -43,6 +133,42 @@ export function ResumeStep({ value, onChange }: Props) {
 
   return (
     <div>
+      <section className="rounded-lg border border-dashed border-slate-300 bg-slate-100 p-4 mb-4">
+        <h2 className="text-sm font-semibold text-slate-900 mb-1">Start from a PDF</h2>
+        <p className="text-xs text-slate-500 mb-3">
+          Upload an existing resume and we&rsquo;ll pre-fill the form. Pure
+          text extraction + heuristics — no LLM is involved in parsing. Your
+          PDF is parsed once on the backend and discarded; nothing is stored.
+        </p>
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={onUpload}
+          disabled={parsing}
+          aria-label="Upload PDF resume"
+          className="text-xs"
+        />
+        {parsing && (
+          <p className="text-xs text-slate-500 mt-2" aria-live="polite">
+            Parsing…
+          </p>
+        )}
+        {parseError && (
+          <p className="text-xs text-red-600 mt-2" role="alert">
+            {parseError}
+          </p>
+        )}
+        {warnings.length > 0 && (
+          <ul className="text-xs text-amber-700 mt-2 space-y-0.5">
+            {warnings.map((w, i) => (
+              <li key={i}>
+                <span className="font-medium">{w.field}:</span> {w.message}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className={SECTION}>
         <h2 className="text-sm font-semibold text-slate-900 mb-3">Contact</h2>
         <div className="grid grid-cols-2 gap-3">

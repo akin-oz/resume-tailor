@@ -102,3 +102,54 @@ export interface TemplateMeta {
   description: string;
   previewUrl: string;
 }
+
+// --- Parser output (ParsedResume from /api/parse) -----------------------
+// Relaxed shape — anything may be missing. Frontend converts to ResumeInput
+// (with minted IDs and date format coercion) after the user reviews.
+
+export interface ParsedContact {
+  name: string;
+  email: string;
+  phone?: string | null;
+  location?: string | null;
+  website?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+}
+
+export interface ParsedStory {
+  text: string;
+  keywords: string[];
+}
+
+export interface ParsedExperience {
+  company: string;
+  title: string;
+  location?: string | null;
+  start: string;
+  end?: string | null;
+  stories: ParsedStory[];
+}
+
+export interface ParsedEducation {
+  school: string;
+  degree: string;
+  field?: string | null;
+  start?: string | null;
+  end?: string | null;
+  notes?: string | null;
+}
+
+export interface ParseWarning {
+  field: string;
+  message: string;
+}
+
+export interface ParsedResume {
+  contact: ParsedContact;
+  profileSeed: string;
+  experiences: ParsedExperience[];
+  education: ParsedEducation[];
+  skills: string[];
+  warnings: ParseWarning[];
+}
