@@ -4,6 +4,8 @@ Type your real experience once. Paste any JD. Pick a template. Get a clean, trut
 
 > An LLM with no constraints will hallucinate metrics and titles. Resume Tailor gives the model **only the bullets you wrote yourself**, and restricts it to selecting and ordering from that pool. Your facts stay your facts.
 
+**Live:** https://resume-tailor-web.akinoztorun.workers.dev/ (frontend on Cloudflare Workers, backend on Render — first request after idle takes ~30s to wake the backend; subsequent ones are fast)
+
 ---
 
 ## Run in 60 seconds
