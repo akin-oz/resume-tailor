@@ -28,3 +28,6 @@ web/*.tsbuildinfo
 
 # Generated template previews (regenerate with `make previews`).
 templates/*/preview.png
+
+# Claude Code session state (per-session, not per-repo).
+.claude/.session-branch
