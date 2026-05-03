@@ -53,12 +53,51 @@ Every additional dependency must be **justified in the README**. Default to stan
 
 **Each PR is one vertical slice, ≤400 LOC excluding lockfiles, with tests.**
 
-The Stop hook warns when the staged diff exceeds 400 LOC. Heed the warning. Two kinds of drift to watch for:
+The Stop hook warns when the staged diff exceeds 400 LOC.
 
-1. **Scaffolding cost** — a new domain area pulls in models + tests + types + UI. That's two slices, not one. Ship the model + tests first, the UI second.
-2. **Coupled changes** — sometimes a model change forces a route + test update. That's fine. But "while I'm in there" cleanup is what bloats slices. Cut it.
+### Vertical means by feature, not by layer
 
-When you forecast > 400 LOC: **propose a split before coding.** If you're already mid-slice and growing, stop and split.
+This is the trap I keep falling into. A vertical slice is a thin column through *every* layer — domain + route + tests + UI — that delivers **one user-visible capability**. Each slice ships independently and is demoable on its own.
+
+Reference: [Milan Jovanović — Vertical Slice Architecture](https://www.milanjovanovic.tech/blog/vertical-slice-architecture).
+
+**Counter-example (the one I made on PR #2):** the resume parser was 1023 LOC, so I split it into:
+
+- #4: parser domain only (`parse.py` + types + tests)
+- #5: HTTP route on top of #4
+- #6: UI that calls the route
+
+That's *horizontal* slicing — split by layer. None of those PRs ship alone:
+
+- #4 had no callers
+- #5 had no UI
+- #6 returned 404 in production
+
+User-visible value only appeared when all three merged. Each "slice" was actually a layer in disguise.
+
+**The right split** would have been by feature subset:
+
+- A. Upload PDF → contact card pre-fills (`parse_contact` only, route, UI for that one card). Demoable: a user can upload a PDF and see their name + email show up.
+- B. Add experience extraction. Same upload UI, now also fills experience cards.
+- C. Add education + skills + summary. Completes the feature.
+
+Each is end-to-end. Each ~300 LOC. Each merged into production gives the user something new to try.
+
+### When a feature is genuinely indivisible
+
+Sometimes a single function or pipeline IS the substance of the slice (the parser's `parse.py` is 444 LOC of one cohesive flow with no natural seam to extract a "smaller parser" from). When that happens:
+
+1. Don't fake-split it by layer — produces unshippable intermediates
+2. Don't extract dead-code "subroutines" just to make file sizes smaller
+3. Call out the size exception in the PR description with the rationale
+
+The 400-LOC budget is a forcing function for *feature decomposition*, not layer decomposition. When feature decomposition is genuinely impossible, override the budget openly rather than pretending you split.
+
+### Other drift to watch for
+
+- **Coupled changes** — sometimes a model change forces a route + test update. That's fine. But "while I'm in there" cleanup is what bloats slices. Cut it.
+
+When you forecast > 400 LOC: **propose a split before coding.** If you're already mid-slice and growing, stop and split. Use the `slice-splitter` subagent if it helps.
 
 Past offenders for reference (don't add to this list):
 
@@ -69,7 +108,7 @@ Past offenders for reference (don't add to this list):
 | WeasyPrint + 2 templates + previews | 668 | should have been two slices |
 | OpenAI tailor | 642 | acceptable; central to the thesis |
 | Frontend skeleton + WeasyPrint swap | 785 | combined two distinct things |
-| Resume parser (PR #2) | 1023 | should have been backend + frontend |
+| Resume parser (PR #2 → #4/#5/#6) | 1023 → 716 + 110 + 198 | **wrong both ways:** too big as one PR; horizontally sliced when "rescued" |
 
 ## Workflow
 
@@ -148,6 +187,7 @@ If the user asks for one of these, push back: "this was deliberately cut — sho
 Things I've noticed myself doing wrong in past sessions:
 
 - **Over-budget slices.** See the table above. Use the `slice-splitter` subagent before committing if the diff is big.
+- **Horizontal slicing dressed up as vertical.** When a feature is too big, the wrong fix is to split it into "domain" / "route" / "UI" PRs — none of those ship alone. The right fix is to split by *feature subset* (parse contact only → parse experiences → parse education) so each slice delivers something demoable. See the parser PRs (#2 → #4/#5/#6) for the antipattern in production.
 - **Implementing before confirming the plan.** When the user asks "how should we approach X?", I jump to code. Stop, propose 2-3 sentences, wait for greenlight.
 - **Ceremonial commit messages.** Three sentences usually beat eleven bullet points. Save the long form for the rare structurally significant change.
 - **Not pushing back.** When a user request conflicts with a project principle (e.g. "use an LLM for the parser" vs the no-LLM-without-confirmation philosophy), surface the tension first. Ship only after they confirm.
