@@ -4,6 +4,9 @@
   // and serves it from the global edge. No Worker code needed.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "resume-tailor-web",
+  // Pinned so Wrangler doesn't have to call /memberships (which the
+  // "Edit Cloudflare Workers" token template can't access).
+  "account_id": "8c07041531999bbb11490fe89c5fddae",
   "compatibility_date": "2024-11-15",
   "assets": {
     "directory": "./dist",
