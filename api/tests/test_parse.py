@@ -234,3 +234,39 @@ def test_parse_route_rejects_oversize() -> None:
         files={"file": ("resume.pdf", big, "application/pdf")},
     )
     assert r.status_code == 413
+
+
+def test_parse_route_returns_200_for_pdf_without_resume_structure() -> None:
+    """Regression: a PDF with text but no recognizable section headers
+    must return 200 with warnings, not a 422 'Empty extraction'.
+
+    Real-world resumes commonly lack a Summary section and use
+    layout (not bullet characters) for accomplishments. The old
+    heuristic that summed `profile_seed + stories + skills` chars
+    would falsely reject those. The check now operates on raw
+    extracted text.
+    """
+    from weasyprint import HTML
+
+    # 200+ chars of plain prose with no "Summary" / "Experience" /
+    # "Skills" header — none of the parser's section parsers fire,
+    # so profile_seed / stories / skills all end up empty.
+    body = (
+        "<p>This is the beginning of a long-winded document that has plenty "
+        "of extractable text but does not follow any standard resume layout. "
+        "It contains no recognized section headers, no bullet markers, and "
+        "no date ranges. The parser will produce a ParsedResume with empty "
+        "lists for experience, education, and skills, plus warnings noting "
+        "what it could not detect.</p>"
+    )
+    pdf_bytes = HTML(string=f"<html><body>{body}</body></html>").write_pdf()
+    r = client.post(
+        "/api/parse",
+        files={"file": ("plain.pdf", pdf_bytes, "application/pdf")},
+    )
+    assert r.status_code == 200, r.text
+    body_json = r.json()
+    # Warnings should surface what's missing.
+    warnings = body_json["warnings"]
+    assert any(w["field"] == "experience" for w in warnings)
+    assert any(w["field"] == "skills" for w in warnings)

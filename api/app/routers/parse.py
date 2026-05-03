@@ -14,7 +14,7 @@ from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse, Response
 
 from ..domain.models import ParsedResume, Problem
-from ..domain.parse import parse_pdf
+from ..domain.parse import extract_pdf_text, parse_resume_lines
 
 router = APIRouter()
 
@@ -41,22 +41,22 @@ async def parse(file: PdfUpload) -> ParsedResume | Response:
     if len(pdf_bytes) < 100 or not pdf_bytes.startswith(b"%PDF-"):
         return _problem(400, "Not a PDF", "file does not start with %PDF-")
 
+    # Two-step: extract raw text first so we can detect a scanned PDF
+    # against the *extraction* result, not against parsed-fields heuristics.
+    # A real resume that just lacks a Summary section + bullet markers
+    # would otherwise trigger a false "scanned PDF" rejection.
     try:
-        result = parse_pdf(pdf_bytes)
+        lines = extract_pdf_text(pdf_bytes)
     except Exception as exc:  # pypdfium2 errors come through here
         return _problem(422, "Could not parse PDF", str(exc))
 
-    # If we extracted essentially no usable text, the PDF is probably scanned.
-    extracted_chars = (
-        len(result.profile_seed)
-        + sum(len(s.text) for e in result.experiences for s in e.stories)
-        + sum(len(s) for s in result.skills)
-    )
-    if extracted_chars < _MIN_TEXT_CHARS:
+    if sum(len(line) for line in lines) < _MIN_TEXT_CHARS:
         return _problem(
             422,
             "Empty extraction",
             "Could not extract usable text — PDF may be scanned. Try a text-PDF.",
         )
 
-    return result
+    # Parser always succeeds — partial / empty output is fine; the form
+    # surfaces ParseWarnings for the user to fill in manually.
+    return parse_resume_lines(lines)
