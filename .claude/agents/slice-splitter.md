@@ -65,4 +65,4 @@ Group 1 → review and merge first. Once the API is reachable from production, G
 
 - Don't propose splits that leave a group with no tests.
 - Don't split a feature into "model" and "validators for the model" — those ship together.
-- Don't optimize for absolute equality of LOC across groups; correctness of the split mattes more than balance.
+- Don't optimize for absolute equality of LOC across groups; correctness of the split matters more than balance.

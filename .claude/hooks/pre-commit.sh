@@ -51,14 +51,19 @@ SESSION_BRANCH_FILE=".claude/.session-branch"
 if [ -f "$SESSION_BRANCH_FILE" ]; then
   STARTED_ON=$(cat "$SESSION_BRANCH_FILE")
   if [ "$BRANCH" = "$STARTED_ON" ]; then
-    AHEAD=$(git rev-list --count "origin/main..HEAD" 2>/dev/null || echo 0)
-    if [ "$AHEAD" -eq 0 ]; then
-      cat <<EOF >&2
+    # Only enforce the ahead-count when we can trust origin/main locally.
+    # On a fresh clone without `git fetch`, rev-list returns 0 even for
+    # branches with real commits — that's a false positive we won't take.
+    if git rev-parse --verify "origin/main" >/dev/null 2>&1; then
+      AHEAD=$(git rev-list --count "origin/main..HEAD")
+      if [ "$AHEAD" -eq 0 ]; then
+        cat <<EOF >&2
 ✗ Session started on '$BRANCH' with no commits ahead of origin/main.
   Create a feature branch first:
       git checkout -b claude/<feature-name>
 EOF
-      exit 2
+        exit 2
+      fi
     fi
   fi
 fi
