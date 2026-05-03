@@ -1,0 +1,67 @@
+@page { size: a4; margin: 18mm; }
+
+:root {
+  --accent: #0d9488;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+  margin: 0;
+  font-size: 10.5pt;
+  line-height: 1.45;
+}
+
+header.page h1 {
+  font-size: 22pt;
+  margin: 0 0 4pt;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.contact {
+  color: var(--muted);
+  margin: 0 0 14pt;
+  font-size: 9.5pt;
+}
+
+h2 {
+  font-size: 11pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2pt;
+  margin: 14pt 0 8pt;
+}
+
+.profile p { margin: 0 0 12pt; }
+
+.exp { margin-bottom: 10pt; }
+
+.exp-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: baseline;
+  margin-bottom: 4pt;
+}
+
+.exp-head .title { font-weight: 600; }
+.exp-head .company { color: var(--muted); }
+.exp-head .dates {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 9.5pt;
+}
+
+ul { margin: 4pt 0 0 14pt; padding: 0; }
+li { margin-bottom: 2pt; }
+
+.edu { margin: 0 0 4pt; }
+.skills p { margin: 0; }

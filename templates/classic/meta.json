@@ -1,0 +1,6 @@
+{
+  "id": "classic",
+  "name": "Classic",
+  "description": "Serif, conservative, no color accents. Single column. Reads like a traditional CV.",
+  "previewUrl": "/api/templates/classic/preview"
+}

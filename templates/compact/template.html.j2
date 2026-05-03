@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ contact.name }} — Resume</title>
+  <style>{{ stylesheet | safe }}</style>
+</head>
+<body>
+  <header class="page">
+    <h1>{{ contact.name }}</h1>
+    <p class="contact">
+      {%- set parts = [] -%}
+      {%- if contact.email -%}{%- set _ = parts.append(contact.email) -%}{%- endif -%}
+      {%- if contact.phone -%}{%- set _ = parts.append(contact.phone) -%}{%- endif -%}
+      {%- if contact.location -%}{%- set _ = parts.append(contact.location) -%}{%- endif -%}
+      {%- if contact.linkedin -%}{%- set _ = parts.append(contact.linkedin|string) -%}{%- endif -%}
+      {%- if contact.github -%}{%- set _ = parts.append(contact.github|string) -%}{%- endif -%}
+      {%- if contact.website -%}{%- set _ = parts.append(contact.website|string) -%}{%- endif -%}
+      {{ parts | join(" · ") }}
+    </p>
+  </header>
+
+  <section class="profile">
+    <p>{{ profile }}</p>
+  </section>
+
+  {% if experiences %}
+  <section>
+    <h2>Experience</h2>
+    {% for exp in experiences %}
+    <article class="exp">
+      <header class="exp-head">
+        <span class="title">{{ exp.title }}</span>
+        <span class="company">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</span>
+        <span class="dates">{{ exp.start }} – {{ exp.end or "Present" }}</span>
+      </header>
+      {% if exp.bullets %}
+      <ul>
+        {% for bullet in exp.bullets %}
+        <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if education %}
+  <section>
+    <h2>Education</h2>
+    {% for ed in education %}
+    <p class="edu">
+      <strong>{{ ed.degree }}{% if ed.field %}, {{ ed.field }}{% endif %}</strong>
+      — {{ ed.school }}{% if ed.start or ed.end %} ({{ ed.start or '' }}{% if ed.start and ed.end %} – {% endif %}{{ ed.end or '' }}){% endif %}
+    </p>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if skills %}
+  <section class="skills">
+    <h2>Skills</h2>
+    <p>{{ skills | join(" · ") }}</p>
+  </section>
+  {% endif %}
+</body>
+</html>
