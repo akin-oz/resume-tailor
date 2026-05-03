@@ -99,6 +99,28 @@ def test_all_valid_passes_through() -> None:
     assert cleaned[0].story_ids == ["s1", "s2"]
 
 
+def test_duplicate_valid_story_ids_are_deduplicated() -> None:
+    # Repeated valid IDs are normalized; not treated as hallucinations.
+    ai = [_AIExperience(experience_id="exp1", story_ids=["s1", "s1", "s2", "s1"])]
+    pool = {"exp1": {"s1", "s2"}}
+    cleaned, dropped = validate_experiences(ai, pool)
+    assert cleaned[0].story_ids == ["s1", "s2"]
+    assert dropped == []
+
+
+def test_experience_with_no_valid_stories_is_skipped() -> None:
+    # If every ID the model picked for an experience was invalid, drop the
+    # whole experience — no point rendering a header with no bullets.
+    ai = [
+        _AIExperience(experience_id="exp1", story_ids=["ghost-a", "ghost-b"]),
+        _AIExperience(experience_id="exp2", story_ids=["t1"]),
+    ]
+    pool = {"exp1": {"s1", "s2"}, "exp2": {"t1"}}
+    cleaned, dropped = validate_experiences(ai, pool)
+    assert [e.experience_id for e in cleaned] == ["exp2"]
+    assert dropped == ["ghost-a", "ghost-b"]
+
+
 # --- _user_prompt ---------------------------------------------------------
 
 

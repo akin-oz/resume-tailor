@@ -57,13 +57,25 @@ export function TailorStep({ resume, jd, settings }: Props) {
   };
 
   // Re-render the preview whenever the tailored result or template changes.
+  // The cancelled flag prevents a slow earlier response from overwriting a
+  // newer one when the user switches templates rapidly.
   useEffect(() => {
     if (!tailored) return;
+    let cancelled = false;
     setRendering(true);
     postRenderHtml({ resume, tailored, templateId, format: "html" })
-      .then(setPreviewHtml)
-      .catch((err) => setTailorError(err.message))
-      .finally(() => setRendering(false));
+      .then((html) => {
+        if (!cancelled) setPreviewHtml(html);
+      })
+      .catch((err) => {
+        if (!cancelled) setTailorError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setRendering(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [resume, tailored, templateId]);
 
   const onDownloadPdf = async () => {

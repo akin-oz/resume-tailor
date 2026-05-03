@@ -37,7 +37,9 @@ _MAX_BULLETS_PER_ROLE = 4
 _PROFILE_MAX_WORDS = 75
 
 # Token = lowercase word starting with a letter, length >= 3, allowing a
-# few common in-word symbols (c++, c#, node.js, fine-tuning).
+# few common in-word symbols (c++, node.js, fine-tuning). 2-char names
+# like c# and go are below the floor; users should tag those bullets
+# with the full name ("csharp", "golang") instead.
 _TOKEN_RE = re.compile(r"[a-z][a-z+#./\-]{2,}")
 
 

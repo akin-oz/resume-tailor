@@ -46,6 +46,11 @@ def load_templates() -> dict[str, TemplateMeta]:
         if not all((entry / f).is_file() for f in _REQUIRED_FILES):
             continue
         meta = TemplateMeta.model_validate_json((entry / "meta.json").read_text())
+        # render_html() resolves by folder name, so meta.id must match.
+        if meta.id != entry.name:
+            raise ValueError(f"Template id {meta.id!r} does not match folder name {entry.name!r}")
+        if meta.id in out:
+            raise ValueError(f"Duplicate template id: {meta.id}")
         out[meta.id] = meta
     return out
 

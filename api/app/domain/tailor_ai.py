@@ -120,12 +120,19 @@ def validate_experiences(
             dropped.extend(ae.story_ids)
             continue
         kept: list[StoryId] = []
+        seen: set[str] = set()
         for sid in ae.story_ids:
             if sid in valid_pool:
-                kept.append(sid)
+                if sid not in seen:
+                    kept.append(sid)
+                    seen.add(sid)
+                # Repeated valid IDs are normalized away silently — not a
+                # hallucination, just a sloppy model output.
             else:
                 dropped.append(sid)
-        cleaned.append(TailoredExperience(experience_id=ae.experience_id, story_ids=kept))
+        # Skip experiences the model couldn't fill with anything real.
+        if kept:
+            cleaned.append(TailoredExperience(experience_id=ae.experience_id, story_ids=kept))
     return cleaned, dropped
 
 
@@ -186,6 +193,16 @@ async def tailor_ai(req: TailorRequest, *, client: AsyncOpenAI) -> TailorResult:
     cleaned, dropped = validate_experiences(parsed.experiences, pool_by_exp)
     profile, fallback = validate_profile(parsed.profile, req.resume.profile_seed)
 
+    # Skills must come from the user's pool — same anti-hallucination contract
+    # as bullets. Dedup by exact match, preserve the model's chosen order.
+    valid_skill_pool = set(req.resume.skills)
+    seen_skills: set[str] = set()
+    cleaned_skills: list[str] = []
+    for skill in parsed.skills:
+        if skill in valid_skill_pool and skill not in seen_skills:
+            cleaned_skills.append(skill)
+            seen_skills.add(skill)
+
     log.info(
         "tailor_ai",
         extra={
@@ -202,7 +219,7 @@ async def tailor_ai(req: TailorRequest, *, client: AsyncOpenAI) -> TailorResult:
     return TailorResult(
         profile=profile,
         experiences=cleaned,
-        skills=parsed.skills,
+        skills=cleaned_skills,
         archetype_used=archetype,
         keywords_injected=parsed.keywords_injected,
         dropped_story_ids=dropped,

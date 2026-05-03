@@ -35,24 +35,24 @@ make dev
 ## Architecture
 
 ```text
-api/           FastAPI + Pydantic v2 + Playwright
+api/           FastAPI + Pydantic v2 + WeasyPrint
   app/
     domain/   Pure functions: tailor.py, render.py, archetype.py
     routers/  Thin HTTP layer
     main.py
   tests/
-web/           React 18 + Vite + TS (strict) + Tailwind + TanStack Query
+web/           React 18 + Vite + TS (strict) + Tailwind
   src/
 templates/     Folder-per-template. Add a folder, no backend code changes.
   modern/     {template.html.j2, style.css, meta.json, preview.png}
   classic/
   compact/
 prompts/       tailor_system.md — versioned, reviewable
-scripts/       build_previews.py (Playwright screenshots, runs in CI)
+scripts/       build_previews.py (WeasyPrint → pypdfium2 PNG)
 Makefile       make dev | test | lint | typecheck
 ```
 
-Type safety end-to-end: Pydantic models → OpenAPI schema → TypeScript types via `openapi-typescript`. Zod re-validates at the network boundary on the frontend. No `any`.
+Type safety end-to-end: Pydantic models on the backend, hand-mirrored TypeScript types on the frontend (`web/src/types.ts` keeps in sync until `openapi-typescript` codegen lands). No `any`.
 
 ---
 
@@ -63,8 +63,8 @@ Type safety end-to-end: Pydantic models → OpenAPI schema → TypeScript types 
 - **Profile paragraph guardrails.** 45–75 words, banned-phrase list (`thrilled`, `passionate`, `cutting-edge`, `leverage`, …), no em dashes, vocabulary constrained to the user's `profileSeed` + stories. Failing output falls back to a clean truncation of `profileSeed`.
 - **Archetype detection.** Lightweight keyword heuristic runs first; the model gets the detected archetype as context. The user can override via the UI.
 - **Stub mode.** No `OPENAI_API_KEY` → the same `TailorResult` shape comes from a deterministic function. Tests are hermetic; demos work offline.
-- **Pure core, I/O at the edge.** `domain/tailor.py` and `domain/render.py` take and return data. Routers are thin. AI calls and Playwright live behind interfaces.
-- **Single Playwright browser per worker.** Reused across requests; PDF render <2s warm.
+- **Pure core, I/O at the edge.** `domain/tailor.py` and `domain/render.py` take and return data. Routers are thin. AI calls and PDF rendering live behind interfaces.
+- **WeasyPrint for PDF.** Pure Python — no headless browser, no native binary. Fits the static paged-content shape of a resume; renders ~200–500ms.
 
 ---
 

@@ -12,13 +12,16 @@ interface Props {
 export function JdStep({ value, onChange }: Props) {
   return (
     <section className={SECTION}>
-      <h2 className="text-sm font-semibold text-slate-900 mb-1">Job description</h2>
+      <h2 id="jd-label" className="text-sm font-semibold text-slate-900 mb-1">
+        Job description
+      </h2>
       <p className="text-xs text-slate-500 mb-3">
         Paste the JD. The tailor uses it to rank your bullets and shape the
         profile paragraph. Detected archetype is shown after you click Tailor on
         the next tab.
       </p>
       <textarea
+        aria-labelledby="jd-label"
         className={`${INPUT} min-h-[300px] font-mono text-xs leading-relaxed`}
         placeholder="Paste the job description here…"
         value={value.text}

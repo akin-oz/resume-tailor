@@ -10,7 +10,6 @@ thumbnail PNG. Pure Python, no browser needed.
 
 from __future__ import annotations
 
-import io
 import sys
 from pathlib import Path
 
@@ -94,7 +93,7 @@ def _pdf_first_page_to_png(pdf_bytes: bytes, target: Path) -> None:
     """Rasterize the first page of a PDF into a PNG sized for thumbnail use."""
     import pypdfium2 as pdfium
 
-    pdf = pdfium.PdfDocument(io.BytesIO(pdf_bytes))
+    pdf = pdfium.PdfDocument(pdf_bytes)
     try:
         page = pdf[0]
         # WeasyPrint outputs A4 at 72 DPI; PREVIEW_HEIGHT/A4_height is the scale.

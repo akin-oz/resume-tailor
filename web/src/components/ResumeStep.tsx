@@ -20,7 +20,9 @@ export function ResumeStep({ value, onChange }: Props) {
   };
 
   const addExperience = () => {
-    const nextId = `exp${value.experiences.length + 1}`;
+    // crypto.randomUUID() is opaque, unique, and safe across deletions —
+    // length-based IDs collide after a remove + re-add.
+    const nextId = `exp-${crypto.randomUUID()}`;
     update({
       experiences: [
         ...value.experiences,
@@ -168,7 +170,9 @@ function ExperienceCard({ value, onChange, onRemove }: ExpProps) {
   };
 
   const addStory = () => {
-    const nextId = `${value.id}.s${value.stories.length + 1}`;
+    // Same uniqueness reasoning as addExperience — bullet IDs are opaque
+    // identifiers the backend joins on, so they must never get reused.
+    const nextId = `${value.id}.${crypto.randomUUID()}`;
     update({
       stories: [...value.stories, { id: nextId, text: "", keywords: [] }],
     });

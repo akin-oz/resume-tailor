@@ -36,6 +36,9 @@ def list_templates() -> list[TemplateMeta]:
 
 @router.get("/templates/{template_id}/preview")
 def template_preview(template_id: str) -> Response:
+    # Whitelist via the registry — never let raw path segments touch the filesystem.
+    if template_id not in _TEMPLATES:
+        return _problem(404, "Unknown template", f"no template registered with id={template_id}")
     preview = TEMPLATES_DIR / template_id / "preview.png"
     if not preview.is_file():
         return _problem(

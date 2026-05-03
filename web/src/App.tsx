@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from "react";
 import { useState } from "react";
 import { JdStep } from "./components/JdStep";
 import { ResumeStep } from "./components/ResumeStep";
@@ -7,6 +8,10 @@ import { sampleResume } from "./sampleResume";
 import type { JobDescription, ResumeInput, TailorSettings } from "./types";
 
 const TABS = ["Your resume", "Job description", "Tailor & download"] as const;
+const TAB_IDS = ["tab-resume", "tab-jd", "tab-tailor"] as const;
+const PANEL_IDS = ["panel-resume", "panel-jd", "panel-tailor"] as const;
+
+type TabIndex = 0 | 1 | 2;
 
 export default function App() {
   const [resume, setResume] = useLocalStorage<ResumeInput>("rt:resume", sampleResume);
@@ -14,7 +19,14 @@ export default function App() {
   const [settings] = useLocalStorage<TailorSettings>("rt:settings", {
     tiebreaker: "input_order",
   });
-  const [tab, setTab] = useState<0 | 1 | 2>(0);
+  const [tab, setTab] = useState<TabIndex>(0);
+
+  const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, i: TabIndex) => {
+    if (e.key === "ArrowRight") setTab(((i + 1) % 3) as TabIndex);
+    else if (e.key === "ArrowLeft") setTab(((i + 2) % 3) as TabIndex);
+    else if (e.key === "Home") setTab(0);
+    else if (e.key === "End") setTab(2);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -41,8 +53,12 @@ export default function App() {
             <button
               key={label}
               role="tab"
+              id={TAB_IDS[i]}
+              aria-controls={PANEL_IDS[i]}
               aria-selected={tab === i}
-              onClick={() => setTab(i as 0 | 1 | 2)}
+              tabIndex={tab === i ? 0 : -1}
+              onClick={() => setTab(i as TabIndex)}
+              onKeyDown={(e) => onTabKeyDown(e, i as TabIndex)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === i
                   ? "border-accent text-accent"
@@ -57,9 +73,15 @@ export default function App() {
       </nav>
 
       <main className="mx-auto max-w-6xl px-6 py-6">
-        {tab === 0 && <ResumeStep value={resume} onChange={setResume} />}
-        {tab === 1 && <JdStep value={jd} onChange={setJd} />}
-        {tab === 2 && <TailorStep resume={resume} jd={jd} settings={settings} />}
+        <div role="tabpanel" id={PANEL_IDS[0]} aria-labelledby={TAB_IDS[0]} hidden={tab !== 0}>
+          {tab === 0 && <ResumeStep value={resume} onChange={setResume} />}
+        </div>
+        <div role="tabpanel" id={PANEL_IDS[1]} aria-labelledby={TAB_IDS[1]} hidden={tab !== 1}>
+          {tab === 1 && <JdStep value={jd} onChange={setJd} />}
+        </div>
+        <div role="tabpanel" id={PANEL_IDS[2]} aria-labelledby={TAB_IDS[2]} hidden={tab !== 2}>
+          {tab === 2 && <TailorStep resume={resume} jd={jd} settings={settings} />}
+        </div>
       </main>
 
       <footer className="mx-auto max-w-6xl px-6 py-6 text-xs text-slate-500">
