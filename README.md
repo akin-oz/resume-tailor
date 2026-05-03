@@ -102,6 +102,8 @@ Two pieces, two providers — decoupled by the camelCase JSON contract.
 
 WeasyPrint needs Cairo + Pango at runtime, so the backend needs a real Linux container host. Cloud Run is the cleanest free-forever fit: scales to zero, ~1-3s cold start, 2M requests/month + 180k vCPU-seconds in the always-free tier (a portfolio demo won't come close).
 
+The Makefile defaults to **`europe-west1`** (Belgium) — Tier 1 pricing region with low latency across most of EMEA. Override with `GCP_REGION=...` if your audience is elsewhere; common picks are `europe-north1` (Finland), `us-central1` (Iowa), `asia-northeast1` (Tokyo).
+
 One-time setup (per GCP project):
 
 ```bash
@@ -116,9 +118,9 @@ Deploy (Cloud Run reads the `Dockerfile` and builds on the fly):
 GCP_PROJECT=YOUR_PROJECT_ID make deploy-api
 
 # Then wire up CORS for the frontend and (optionally) OpenAI:
-gcloud run services update resume-tailor-api --region us-central1 \
+gcloud run services update resume-tailor-api --region europe-west1 \
   --set-env-vars CORS_ORIGINS=https://resume-tailor-web.<account>.workers.dev
-gcloud run services update resume-tailor-api --region us-central1 \
+gcloud run services update resume-tailor-api --region europe-west1 \
   --update-secrets OPENAI_API_KEY=openai-key:latest   # store via Secret Manager
 ```
 
@@ -130,7 +132,7 @@ The new `assets`-only deploy pattern that supersedes Pages for SPAs. Single comm
 
 ```bash
 # Hardcode the deployed backend URL into the production bundle:
-echo "VITE_API_BASE=https://resume-tailor-api-<hash>-<region>.a.run.app" > web/.env.production
+echo "VITE_API_BASE=https://resume-tailor-api-<hash>-ew.a.run.app" > web/.env.production
 
 CLOUDFLARE_API_TOKEN=cf_... make deploy-web
 ```

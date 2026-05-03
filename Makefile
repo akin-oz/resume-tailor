@@ -32,14 +32,15 @@ deploy-web: build-web
 
 # Deploy backend to Google Cloud Run from source. Cloud Run handles
 # the Docker build via Buildpacks/our Dockerfile and pushes to Artifact
-# Registry. Set GCP_PROJECT; GCP_REGION defaults to us-central1.
+# Registry. Set GCP_PROJECT; GCP_REGION defaults to europe-west1
+# (Belgium — Tier 1 pricing, central EMEA latency).
 # Memory cap of 512Mi keeps us well under the always-free tier.
 deploy-api:
 	@if [ -z "$(GCP_PROJECT)" ]; then echo "Set GCP_PROJECT=your-project-id"; exit 1; fi
 	gcloud run deploy resume-tailor-api \
 		--source . \
 		--project $(GCP_PROJECT) \
-		--region $(or $(GCP_REGION),us-central1) \
+		--region $(or $(GCP_REGION),europe-west1) \
 		--allow-unauthenticated \
 		--memory 512Mi \
 		--cpu 1 \
