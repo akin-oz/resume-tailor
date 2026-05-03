@@ -236,6 +236,77 @@ def test_parse_route_rejects_oversize() -> None:
     assert r.status_code == 413
 
 
+# --- Real-world layout regression -----------------------------------------
+
+
+# Verbatim lines from a real PDF that broke the parser before #PR-9:
+# letter-spaced section headers (`PROF I LE`, `EX PERIENCE`, `TECHNICAL SKI L LS`)
+# and unprefixed bullets (pypdfium2 dropped the • glyphs).
+_LETTER_SPACED_RESUME = [
+    "Akın Öztorun",
+    "Frontend Engineer",
+    "Türkiye • akin@akinoztorun.dev • linkedin.com/in/oztorun • +90 506 954 0174",
+    "PROF I LE",
+    "Senior Frontend Engineer with 9+ years of experience building TypeScript-first products.",
+    "EX PERIENCE",
+    "Senior Frontend Engineer (Freelance)",
+    "Proxify",
+    "Nov 2025 – Present",
+    "Took over full frontend ownership of a Vue 3 / Nuxt platform for a German client.",
+    "Led a Nuxt 4 migration to a Feature-Sliced architecture.",
+    "Senior Software Engineer",
+    "Proxify",
+    "Jan 2022 – Oct 2025",
+    "Owned ATS funnel handling ~400K applications per year.",
+    "Increased completion from ~39% to ~65%.",
+    "Frontend Engineer",
+    "Skeyl",
+    "Jun 2016 – Jan 2022",
+    "Served as primary frontend owner for React/TypeScript SPAs.",
+    "Raised Lighthouse scores from the 40s to the 90s.",
+    "TECHNICAL SKI L LS",
+    "TypeScript, React, Next.js, Vue 3, Nuxt, Pinia, Node.js, Tailwind CSS",
+    "EDUCAT ION",
+    "Bachelor's Degree, Metallurgical and Materials Engineering",
+    "Karadeniz Technical University",
+]
+
+
+def test_letter_spaced_section_headers_are_detected() -> None:
+    sections = split_sections(_LETTER_SPACED_RESUME)
+    assert "summary" in sections, "PROF I LE should be detected as summary"
+    assert "experience" in sections, "EX PERIENCE should be detected as experience"
+    assert "skills" in sections, "TECHNICAL SKI L LS should be detected as skills"
+    assert "education" in sections, "EDUCAT ION should be detected as education"
+
+
+def test_real_resume_extracts_three_experiences_without_bullet_glyphs() -> None:
+    """The parser must use date ranges as anchors when • glyphs are stripped."""
+    parsed = parse_resume_lines(_LETTER_SPACED_RESUME)
+    assert len(parsed.experiences) == 3
+    titles = [e.title for e in parsed.experiences]
+    companies = [e.company for e in parsed.experiences]
+    assert "Senior Frontend Engineer (Freelance)" in titles
+    assert "Senior Software Engineer" in titles
+    assert "Frontend Engineer" in titles
+    assert companies.count("Proxify") == 2
+    assert "Skeyl" in companies
+    # Each entry should have its bullets attached as stories, even though
+    # the source had no • prefix on them.
+    for exp in parsed.experiences:
+        assert len(exp.stories) >= 1, f"{exp.title} has no stories"
+
+
+def test_real_resume_extracts_skills() -> None:
+    parsed = parse_resume_lines(_LETTER_SPACED_RESUME)
+    assert "TypeScript" in parsed.skills
+    assert "React" in parsed.skills
+    assert "Tailwind CSS" in parsed.skills
+
+
+# --- End-to-end via route -------------------------------------------------
+
+
 def test_parse_route_returns_200_for_pdf_without_resume_structure() -> None:
     """Regression: a PDF with text but no recognizable section headers
     must return 200 with warnings, not a 422 'Empty extraction'.
