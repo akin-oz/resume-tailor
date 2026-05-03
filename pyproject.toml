@@ -40,6 +40,8 @@ ignore = ["E501"]  # line length is enforced by formatter
 
 [tool.ruff.lint.per-file-ignores]
 "api/tests/*" = ["N802"]  # test_ names are intentionally not snake_case verbs
+# Resume parser intentionally matches Unicode dashes / spaces found in real PDFs.
+"api/app/domain/parse.py" = ["RUF001"]
 
 [tool.mypy]
 python_version = "3.11"
