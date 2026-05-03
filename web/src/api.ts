@@ -1,4 +1,5 @@
 import type {
+  ParsedResume,
   RenderRequest,
   TailorRequest,
   TailorResult,
@@ -50,4 +51,22 @@ export async function postRenderPdf(req: RenderRequest): Promise<Blob> {
   });
   if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   return r.blob();
+}
+
+export async function postParseResume(file: File): Promise<ParsedResume> {
+  const form = new FormData();
+  form.append("file", file);
+  const r = await fetch(`${BASE}/api/parse`, { method: "POST", body: form });
+  if (!r.ok) {
+    // Try to surface the problem+json detail if present.
+    let detail = await r.text();
+    try {
+      const parsed = JSON.parse(detail);
+      detail = parsed.detail ?? parsed.title ?? detail;
+    } catch {
+      /* not JSON */
+    }
+    throw new Error(`Could not parse resume: ${detail}`);
+  }
+  return r.json();
 }
