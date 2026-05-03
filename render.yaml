@@ -1,0 +1,19 @@
+# Render.com declarative deploy config.
+# https://render.com/docs/blueprint-spec
+#
+# Free tier: web service spins down after 15 min idle, ~30s cold start.
+# Reads our Dockerfile in the repo root; no separate build config needed.
+
+services:
+  - type: web
+    name: resume-tailor-api
+    runtime: docker
+    region: frankfurt          # EMEA. Use `oregon` for US-West, `singapore` for APAC.
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: false          # manual deploys; flip to true once you trust the branch
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false            # set the deployed frontend URL in the Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false            # optional; stub mode runs without
