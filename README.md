@@ -110,6 +110,11 @@ One-time setup (per GCP project):
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+
+# Grant the Compute SA the roles Cloud Build + Cloud Run need.
+# Without this, the first deploy fails with "storage.objects.get denied"
+# (a known GCP gotcha since April 2024).
+GCP_PROJECT=YOUR_PROJECT_ID make bootstrap-gcp
 ```
 
 Deploy (Cloud Run reads the `Dockerfile` and builds on the fly):
