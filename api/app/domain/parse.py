@@ -100,12 +100,18 @@ _SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
 
 
 def _detect_section(line: str) -> str | None:
-    """If ``line`` is a section header, return the section's canonical name."""
-    norm = re.sub(r"[^a-z\s]", "", line.lower()).strip()
-    if not norm or len(norm.split()) > 4:
+    """If ``line`` is a section header, return the section's canonical name.
+
+    Tolerates letter-spaced rendering (`PROF I LE`, `TECHNICAL SKI L LS`)
+    that pypdfium2 extracts as separate words. We strip everything but
+    letters and compare against headers with their internal spaces also
+    stripped, so `"profile"` and `"technicalskills"` both match.
+    """
+    norm = re.sub(r"[^a-z]", "", line.lower())
+    if not norm or len(norm) > 30:
         return None
     for section, headers in _SECTION_PATTERNS.items():
-        if norm in headers:
+        if any(header.replace(" ", "") == norm for header in headers):
             return section
     return None
 
@@ -232,27 +238,62 @@ def parse_summary(lines: list[str]) -> str:
     return " ".join(line.strip() for line in lines if line.strip())
 
 
-def _split_into_blocks(lines: list[str]) -> list[list[str]]:
-    """Split a section into per-entry blocks.
+def _lookback_for_header(lines: list[str], date_idx: int, floor: int) -> int:
+    """Walk back from a date-range line to find where its entry's header begins.
 
-    Heuristic: a new entry starts at the first non-bullet line that
-    follows a run of bullets. That handles the typical
-    ``[title, dates, bullets..., next-title, next-dates, bullets...]``
-    layout. Entries without bullets stay together until the next bullet
-    sequence ends.
+    Most resumes put 1-2 lines before the date for title and (optionally)
+    company. Stop early if we hit content that clearly isn't header:
+    a bullet line, another date, a sentence (ends in . ! ?), or anything
+    too long to be a label.
     """
+    start = date_idx
+    while start > floor and (date_idx - start) < 2:
+        cand = lines[start - 1]
+        if _BULLET_RE.match(cand):
+            break
+        if _DATE_RANGE_RE.search(cand):
+            break
+        if cand.rstrip().endswith((".", "!", "?")):
+            break
+        if len(cand) > 80:
+            break
+        start -= 1
+    return start
+
+
+def _split_into_blocks(lines: list[str]) -> list[list[str]]:
+    """Split a section into per-entry blocks, anchoring on date ranges.
+
+    Many real-world PDFs strip bullet glyphs during text extraction, so
+    bullet detection isn't reliable. Date ranges (`Nov 2025 - Present`)
+    are. For each date, we walk back up to 2 lines for title/company
+    (stopping at bullets/sentences/etc.), and forward to one line before
+    the next entry's title.
+
+    Falls back to one big block when no date ranges are present (Skills
+    section, etc.).
+    """
+    date_idxs = [
+        i
+        for i, line in enumerate(lines)
+        if _DATE_RANGE_RE.search(line) and not _BULLET_RE.match(line)
+    ]
+    if not date_idxs:
+        return [list(lines)] if lines else []
+
     blocks: list[list[str]] = []
-    current: list[str] = []
-    last_was_bullet = False
-    for line in lines:
-        is_bullet = bool(_BULLET_RE.match(line))
-        if not is_bullet and last_was_bullet and current:
-            blocks.append(current)
-            current = []
-        current.append(line)
-        last_was_bullet = is_bullet
-    if current:
-        blocks.append(current)
+    prev_block_end = 0
+    for k, date_idx in enumerate(date_idxs):
+        block_start = max(prev_block_end, _lookback_for_header(lines, date_idx, prev_block_end))
+        if k + 1 < len(date_idxs):
+            next_date_idx = date_idxs[k + 1]
+            block_end = max(
+                block_start + 1, _lookback_for_header(lines, next_date_idx, block_start)
+            )
+        else:
+            block_end = len(lines)
+        blocks.append(lines[block_start:block_end])
+        prev_block_end = block_end
     return blocks
 
 
@@ -297,6 +338,14 @@ def _split_title_company(text: str) -> tuple[str, str]:
     return text.strip(), ""
 
 
+def _looks_like_company(line: str) -> bool:
+    """Heuristic: companies are short label-like strings; bullets are sentences."""
+    words = line.split()
+    if not 1 <= len(words) <= 5:
+        return False
+    return not line.rstrip().endswith((".", "!", "?"))
+
+
 def parse_experience(lines: list[str]) -> tuple[list[ParsedExperience], list[ParseWarning]]:
     """Split experience section into per-job blocks."""
     warnings: list[ParseWarning] = []
@@ -305,23 +354,29 @@ def parse_experience(lines: list[str]) -> tuple[list[ParsedExperience], list[Par
     for block in _split_into_blocks(lines):
         if not block:
             continue
+        # Pull explicit bullet-prefixed lines out first. If the PDF didn't
+        # extract bullet glyphs (common!), this returns no stories and we
+        # fall back to position heuristics below.
         stories, header = _extract_bullets(block)
         start, end, header = _extract_date_range(header)
-        # Two common shapes after dates removed:
-        #   ["Senior Engineer | Acme"]                        → one line
-        #   ["Senior Engineer", "Acme"] or ["Acme", ...]      → multi-line
+
         title = ""
         company = ""
         location: str | None = None
+
         if header:
             first = header[0]
             t, c = _split_title_company(first)
             if c:
                 title, company = t, c
+                # Remaining header lines (if any) are body content the bullet
+                # extractor missed because the PDF stripped the bullet glyphs.
+                if not stories:
+                    stories = [ParsedStory(text=line) for line in header[1:]]
             else:
                 title = t
-                if len(header) >= 2:
-                    # Second line: company, possibly with location after a comma/pipe.
+                if len(header) >= 2 and _looks_like_company(header[1]):
+                    # Second line is company (with optional location separator).
                     second = header[1]
                     for sep in (" | ", " · ", " — ", " – ", " - ", ", "):
                         if sep in second:
@@ -331,6 +386,15 @@ def parse_experience(lines: list[str]) -> tuple[list[ParsedExperience], list[Par
                             break
                     else:
                         company = second
+                    body_start = 2
+                else:
+                    body_start = 1
+                if not stories:
+                    stories = [ParsedStory(text=line) for line in header[body_start:]]
+
+        # Skip experiences we couldn't pull anything meaningful out of.
+        if not (title or company or stories):
+            continue
         out.append(
             ParsedExperience(
                 title=title,
