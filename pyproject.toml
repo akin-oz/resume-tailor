@@ -9,6 +9,7 @@ dependencies = [
     "openai>=1.55",
     "pydantic[email]>=2.9",
     "pypdfium2>=4.30",
+    "python-multipart>=0.0.20",
     "uvicorn[standard]>=0.32",
     "weasyprint>=63",
 ]

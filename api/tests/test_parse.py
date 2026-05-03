@@ -8,6 +8,11 @@ from app.domain.parse import (
     parse_skills,
     split_sections,
 )
+from app.main import app
+from fastapi.testclient import TestClient
+
+client = TestClient(app)
+
 
 # --- Section splitting ----------------------------------------------------
 
@@ -200,3 +205,32 @@ def test_end_to_end_synthetic_resume() -> None:
     # No critical warnings — this synthetic resume has everything.
     blockers = [w for w in parsed.warnings if w.field in {"contact.name", "contact.email"}]
     assert blockers == []
+
+
+# --- Route -----------------------------------------------------------------
+
+
+def test_parse_route_rejects_non_pdf() -> None:
+    r = client.post(
+        "/api/parse",
+        files={"file": ("resume.txt", b"hello", "text/plain")},
+    )
+    assert r.status_code == 415
+
+
+def test_parse_route_rejects_bogus_pdf_bytes() -> None:
+    # Non-PDF bytes (no %PDF- header) → 400.
+    r = client.post(
+        "/api/parse",
+        files={"file": ("resume.pdf", b"not-actually-a-pdf-just-some-bytes", "application/pdf")},
+    )
+    assert r.status_code == 400
+
+
+def test_parse_route_rejects_oversize() -> None:
+    big = b"%PDF-1.4\n" + b"x" * (6 * 1024 * 1024)
+    r = client.post(
+        "/api/parse",
+        files={"file": ("resume.pdf", big, "application/pdf")},
+    )
+    assert r.status_code == 413
