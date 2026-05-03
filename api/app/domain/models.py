@@ -225,6 +225,68 @@ class TailorResult(_Strict):
     )
 
 
+# --- Resume parsing --------------------------------------------------------
+
+
+class ParsedContact(_Strict):
+    """Parser output — relaxed shape (anything may be missing).
+
+    The frontend pre-fills the form with this and lets the user edit
+    before submitting through the strict ``Contact`` validator.
+    """
+
+    name: str = ""
+    email: str = ""
+    phone: str | None = None
+    location: str | None = None
+    website: str | None = None
+    linkedin: str | None = None
+    github: str | None = None
+
+
+class ParsedStory(_Strict):
+    text: str
+    keywords: list[str] = Field(default_factory=list)
+
+
+class ParsedExperience(_Strict):
+    company: str = ""
+    title: str = ""
+    location: str | None = None
+    # Raw strings — parser preserves what it found, frontend reformats to
+    # the strict YYYY/YYYY-MM PartialDate before submitting.
+    start: str = ""
+    end: str | None = None
+    stories: list[ParsedStory] = Field(default_factory=list)
+
+
+class ParsedEducation(_Strict):
+    school: str = ""
+    degree: str = ""
+    field: str | None = None
+    start: str | None = None
+    end: str | None = None
+    notes: str | None = None
+
+
+class ParseWarning(_Strict):
+    """A non-fatal hint to the user: 'we couldn't find X, please add it'."""
+
+    field: str
+    message: str
+
+
+class ParsedResume(_Strict):
+    """Best-effort structured extraction from a PDF resume."""
+
+    contact: ParsedContact = Field(default_factory=ParsedContact)
+    profile_seed: str = ""
+    experiences: list[ParsedExperience] = Field(default_factory=list)
+    education: list[ParsedEducation] = Field(default_factory=list)
+    skills: list[str] = Field(default_factory=list)
+    warnings: list[ParseWarning] = Field(default_factory=list)
+
+
 # --- Render request --------------------------------------------------------
 
 
@@ -276,6 +338,12 @@ __all__ = [
     "HealthStatus",
     "JobDescription",
     "Keyword",
+    "ParseWarning",
+    "ParsedContact",
+    "ParsedEducation",
+    "ParsedExperience",
+    "ParsedResume",
+    "ParsedStory",
     "PartialDate",
     "Problem",
     "RenderFormat",
