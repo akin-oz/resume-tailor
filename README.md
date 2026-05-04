@@ -30,7 +30,7 @@ export OPENAI_API_KEY=sk-...
 make dev
 ```
 
-A worked example (real bullets from the maintainer's [`job-hunt`](https://github.com/akin-oz/job-hunt) truth source, real cached JD) lives in [`examples/`](examples/) — input JSON, JD, the tailored response, and the produced PDF, all committed so you can see the method's output without running anything.
+A worked example (real bullets from the maintainer's [`job-hunt`](https://github.com/akin-oz/job-hunt) truth source, real cached JD) lives in [`examples/`](examples/) — input JSON, JD, the tailored response, and the produced PDF (with a [PNG preview](examples/tailored.preview.png) so GitHub renders it inline), all committed so you can see the method's output without running anything.
 
 The bullet-pool contract is verified on that worked example by [`evals/`](evals/) (`make eval`) — an external auditor that asserts every output story ID, skill, profile word-count, and banned-phrase rule actually holds. Runs as part of `make check`.
 

@@ -1,4 +1,4 @@
-.PHONY: install install-web dev api web test lint format format-check typecheck check previews eval build-web deploy-web deploy-api bootstrap-gcp
+.PHONY: install install-web dev api web test lint format format-check typecheck check previews eval eval-example build-web deploy-web deploy-api bootstrap-gcp
 
 install:
 	uv sync --all-extras
@@ -74,6 +74,11 @@ test:
 # target exists for the human-readable PASS/FAIL report.
 eval:
 	uv run python evals/check_provenance.py
+
+# Regenerate examples/tailored.{json,pdf,preview.png} after editing the
+# sample inputs, the templates, or the tailor logic.
+eval-example:
+	uv run python scripts/build_example.py
 
 lint:
 	uv run ruff check .

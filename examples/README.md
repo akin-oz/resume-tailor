@@ -11,6 +11,12 @@ The **actual outputs** the pipeline produces ([`tailored.json`](tailored.json),
 [`tailored.pdf`](tailored.pdf)) are committed too, so you can see the result
 without running anything.
 
+![Rendered preview of tailored.pdf — pages 1 and 2 of the modern template](tailored.preview.png)
+
+(`tailored.preview.png` is a 2-up rasterization of `tailored.pdf` so GitHub
+can render it inline. Regenerate after the PDF changes — see the bottom of
+this file.)
+
 Use this to:
 
 - See the **shape** the API expects without reading Pydantic.
@@ -120,3 +126,12 @@ the right thing to load on first page-paint — it teaches the form. It is the
 from*: every bullet is going in. The point of the bullet pool is that 18+
 bullets become 8–10, and which ones change with the JD. This example makes
 that visible.
+
+## Regenerating after edits
+
+If you change `sample-resume.json`, `sample-jd.txt`, or the templates,
+regenerate the committed outputs so the README stays accurate:
+
+```bash
+make eval-example   # regenerates tailored.json + tailored.pdf + tailored.preview.png
+```
