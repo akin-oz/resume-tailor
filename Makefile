@@ -1,4 +1,4 @@
-.PHONY: install install-web dev api web test lint format format-check typecheck check previews eval eval-example build-web deploy-web deploy-api bootstrap-gcp
+.PHONY: install install-web dev api web test lint format format-check typecheck check previews eval eval-example eval-llm build-web deploy-web deploy-api bootstrap-gcp
 
 install:
 	uv sync --all-extras
@@ -79,6 +79,13 @@ eval:
 # sample inputs, the templates, or the tailor logic.
 eval-example:
 	uv run python scripts/build_example.py
+
+# Stage-2 eval: unconstrained vs bullet-pool tailoring on the worked
+# example. Calls the OpenAI API; gated on OPENAI_API_KEY. Writes
+# evals/results/llm_compare.{md,json}. Manual invocation only — not in
+# `make check`, no CI cost.
+eval-llm:
+	uv run python evals/llm_compare.py
 
 lint:
 	uv run ruff check .

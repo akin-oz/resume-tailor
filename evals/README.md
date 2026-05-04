@@ -58,14 +58,40 @@ the eval — surfacing the change in code review rather than silently
 moving the goalposts. If the eval drifts, the test fails and the
 contradiction is visible.
 
+## Stage 2: LLM compare (unconstrained vs bullet-pool)
+
+[`llm_compare.py`](llm_compare.py) runs the worked example through two
+paths and quantifies the fabrication delta:
+
+* **Unconstrained** — passes the candidate facts + JD to OpenAI and asks
+  for a freehand tailored resume. No bullet pool, no ID-only contract,
+  no validators. The "ask ChatGPT for a resume" baseline.
+* **Constrained** — the production `tailor_ai` pipeline. Same model,
+  same inputs; different contract.
+
+Counts numeric claims fabricated (numbers in the output that don't
+appear anywhere in the input pool), skills fabricated, and profile
+guardrail violations. Writes `evals/results/llm_compare.{md,json}`.
+
+```bash
+OPENAI_API_KEY=sk-... make eval-llm
+```
+
+Gated on `OPENAI_API_KEY` — does **not** run as part of `make check`.
+Manual invocation only, so CI never pays for the call. The
+`evals/results/` directory is not committed until the maintainer runs the
+harness with credit; the script is the spec, the result is the
+evidence. Faking the comparison numbers would defeat the point of an
+anti-fabrication tool, so the result file is left empty rather than
+synthesised.
+
 ## Scope and limits
 
-These evals only check what's mechanically verifiable: ID membership,
-skill membership, word counts, banned strings, allowed enums. They
-**don't** judge whether the bullets are well-chosen — that's a prompt /
-ranking quality question and lives elsewhere (the LLM-vs-unconstrained
-diff harness is a future addition; would require an `OPENAI_API_KEY`
-and is gated to manual runs to avoid CI cost).
+The Stage-1 evals only check what's mechanically verifiable: ID
+membership, skill membership, word counts, banned strings, allowed
+enums. They **don't** judge whether the bullets are well-chosen — that's
+a prompt / ranking quality question Stage 2 starts to address by
+quantifying the fabrication delta against an unconstrained baseline.
 
 What the current evals *do* prove: when the worked example is rerun, no
 silent regression in the validators can let an invented ID, an
