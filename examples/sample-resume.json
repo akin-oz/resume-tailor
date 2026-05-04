@@ -1,0 +1,193 @@
+{
+  "contact": {
+    "name": "Akın Öztorun",
+    "email": "akin@akinoztorun.dev",
+    "location": "Türkiye (remote)",
+    "linkedin": "https://linkedin.com/in/oztorun"
+  },
+  "profileSeed": "Senior Frontend / Product Engineer with 9+ years building TypeScript-first web products in Vue, Nuxt, React, and Node. Strong track record shipping user-facing features end to end, improving product quality, and building maintainable frontend systems with a focus on performance, reliability, observability, and cross-functional delivery. Comfortable owning vertical slices from discovery through production rollout, working remotely across EMEA time zones.",
+  "experiences": [
+    {
+      "id": "exp-proxify-freelance",
+      "company": "Proxify",
+      "title": "Senior Frontend Engineer (Freelance)",
+      "location": "Remote",
+      "start": "2025-11",
+      "stories": [
+        {
+          "id": "s-vue-ownership",
+          "text": "Took over full frontend ownership of a Vue 3 / Nuxt platform for a German client after its first month.",
+          "keywords": ["vue", "nuxt", "ownership", "typescript"]
+        },
+        {
+          "id": "s-nuxt4-fsd-migration",
+          "text": "Led a Nuxt 4 migration to a Feature-Sliced / vertical-slice architecture, codifying ownership, dependency direction, and lint-enforced public APIs to reduce cross-feature coupling and keep changes reviewable.",
+          "keywords": ["nuxt", "architecture", "vertical slices", "feature-sliced", "code review"]
+        },
+        {
+          "id": "s-design-system-primevue",
+          "text": "Established a token-driven design-system layer over PrimeVue, shipping reusable primitives with Storybook documentation and Figma-aligned component contracts.",
+          "keywords": ["design system", "storybook", "figma", "design tokens", "primevue"]
+        },
+        {
+          "id": "s-observability-mixpanel-sentry",
+          "text": "Added frontend observability with Mixpanel, Sentry, correlation IDs, and structured telemetry to improve release traceability and reduce low-value client error noise.",
+          "keywords": ["observability", "sentry", "mixpanel", "telemetry", "error monitoring"]
+        },
+        {
+          "id": "s-gitlab-release-pipeline",
+          "text": "Designed a GitLab release pipeline with semantic versioning, Sentry release tracking, SonarQube quality checks, and AWS OIDC-based Amplify deployments.",
+          "keywords": ["ci/cd", "gitlab", "semantic versioning", "release engineering", "aws", "sonarqube"]
+        },
+        {
+          "id": "s-capacitor-mobile",
+          "text": "Built the Capacitor mobile delivery pipeline for iOS and Android, including native build/release automation, preflight validation, and CI hooks for TestFlight and signed Android artifacts.",
+          "keywords": ["capacitor", "mobile", "ios", "android", "ci/cd"]
+        },
+        {
+          "id": "s-vitest-playwright-quality",
+          "text": "Standardized deterministic frontend testing with Vitest and Playwright, added accessibility/performance assertions to critical journeys, and wired SonarQube into CI quality gates.",
+          "keywords": ["testing", "vitest", "playwright", "accessibility", "performance", "quality gates"]
+        },
+        {
+          "id": "s-dx-amplify-guard",
+          "text": "Improved frontend DX and CI reliability by standardizing lockfile generation and adding an Amplify build guard to reuse cached artifacts.",
+          "keywords": ["dx", "ci", "build performance", "amplify"]
+        },
+        {
+          "id": "s-platform-rfcs",
+          "text": "Authored frontend platform RFCs for analytics and experimentation, aligning implementation with product, analytics, privacy, and mobile constraints.",
+          "keywords": ["rfc", "analytics", "experimentation", "cross-functional"]
+        },
+        {
+          "id": "s-pinia-typed-stores",
+          "text": "Managed application state with Pinia, using typed stores and composable patterns for cross-feature data sharing in the Vue 3 / Nuxt platform.",
+          "keywords": ["state management", "pinia", "vue", "typescript"]
+        },
+        {
+          "id": "s-zod-runtime-validation",
+          "text": "Integrated Zod for runtime schema validation on API boundaries, enforcing typed contracts between backend responses and frontend consumers.",
+          "keywords": ["zod", "validation", "api contracts", "typescript", "runtime safety"]
+        },
+        {
+          "id": "s-tailwind-adoption",
+          "text": "Adopted Tailwind CSS for utility-first styling across the platform, reducing custom CSS overhead and improving design-system consistency.",
+          "keywords": ["tailwind", "css", "design system"]
+        }
+      ]
+    },
+    {
+      "id": "exp-proxify-senior",
+      "company": "Proxify",
+      "title": "Senior Software Engineer",
+      "location": "Remote",
+      "start": "2022-01",
+      "end": "2025-10",
+      "stories": [
+        {
+          "id": "s-ats-funnel-ownership",
+          "text": "Owned the frontend of a multi-step ATS funnel handling ~400K applications per year.",
+          "keywords": ["ownership", "conversion", "funnel", "scale"]
+        },
+        {
+          "id": "s-funnel-completion-lift",
+          "text": "Increased ATS funnel completion from ~39% to ~65% via instrumentation, friction-point analysis, and validation UX rebuilds.",
+          "keywords": ["conversion", "funnel", "ux", "instrumentation", "product impact"]
+        },
+        {
+          "id": "s-shared-ui-libraries",
+          "text": "Built shared UI libraries with Storybook and semantic versioning, used across multiple internal product surfaces.",
+          "keywords": ["design system", "storybook", "semantic versioning", "shared libraries"]
+        },
+        {
+          "id": "s-typed-api-collab",
+          "text": "Worked with product / design / backend on typed API contracts, validation, and observable error handling.",
+          "keywords": ["api contracts", "typescript", "cross-functional", "error handling"]
+        },
+        {
+          "id": "s-cicd-quality-gates",
+          "text": "Instituted CI/CD quality gates with Lighthouse CI and SonarQube to keep performance and code-health regressions out of main.",
+          "keywords": ["ci/cd", "quality gates", "lighthouse", "sonarqube", "performance"]
+        },
+        {
+          "id": "s-quality-award",
+          "text": "Received the company-wide Proxify Quality Award 2024.",
+          "keywords": ["recognition", "quality"]
+        },
+        {
+          "id": "s-onboarding-portal",
+          "text": "Built a self-service onboarding portal that replaced a manual workflow and reduced time-to-active-account.",
+          "keywords": ["onboarding", "self-service", "product"]
+        }
+      ]
+    },
+    {
+      "id": "exp-skeyl",
+      "company": "Skeyl",
+      "title": "Frontend Engineer",
+      "location": "Remote",
+      "start": "2016-06",
+      "end": "2022-01",
+      "stories": [
+        {
+          "id": "s-react-spa-owner",
+          "text": "Served as primary frontend owner for React / TypeScript SPAs and dashboards.",
+          "keywords": ["react", "typescript", "spa", "dashboards", "ownership"]
+        },
+        {
+          "id": "s-lighthouse-40-to-90",
+          "text": "Raised Lighthouse scores from the 40s to the 90s by attacking render-blocking assets, image strategy, and JS payload size.",
+          "keywords": ["performance", "lighthouse", "web vitals", "optimization"]
+        },
+        {
+          "id": "s-node-lambda-utilities",
+          "text": "Built small backend-adjacent utilities with Node.js and AWS Lambda to support frontend feature work.",
+          "keywords": ["node.js", "aws lambda", "backend"]
+        },
+        {
+          "id": "s-legacy-modernization",
+          "text": "Modernized legacy frontend codebases incrementally, migrating to TypeScript and component-driven architecture without halting feature delivery.",
+          "keywords": ["modernization", "typescript", "incremental migration", "refactoring"]
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "Karadeniz Technical University",
+      "degree": "Bachelor's Degree",
+      "field": "Metallurgical and Materials Engineering",
+      "end": "2014"
+    }
+  ],
+  "skills": [
+    "TypeScript",
+    "Vue 3",
+    "Nuxt",
+    "Pinia",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Tailwind CSS",
+    "Zod",
+    "HTML",
+    "CSS",
+    "Storybook",
+    "Vitest",
+    "Playwright",
+    "MSW",
+    "Sentry",
+    "Datadog",
+    "Mixpanel",
+    "CI/CD",
+    "GitHub Actions",
+    "GitLab CI",
+    "Lighthouse CI",
+    "SonarQube",
+    "REST",
+    "GraphQL",
+    "AWS Lambda",
+    "S3",
+    "Capacitor"
+  ]
+}

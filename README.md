@@ -30,6 +30,8 @@ export OPENAI_API_KEY=sk-...
 make dev
 ```
 
+A worked example (fictional persona, real outputs) lives in [`examples/`](examples/) — input JSON, JD, the tailored response, and the produced PDF, all committed so you can see the method's output without running anything.
+
 ---
 
 ## Architecture

@@ -1,0 +1,72 @@
+Senior Product Engineer — Lette
+https://www.linkedin.com/jobs/view/4337071785/
+Source: cached at job-hunt-local/state/job-descriptions/ (tracker score: 120)
+
+Why now
+
+Institutional rental housing is entering a new era. Legacy CRMs, point
+solutions, spreadsheets and fragmented workflows are no longer fit for
+purpose. Lette is building an AI-native, agentic back office that automates
+property operations end to end. Think Rippling plus Anthropic for rental
+portfolios.
+
+We are shipping daily and already powering live operations. With ambitious
+goals for 2026 and beyond, this is your chance to shape the product, team
+and company from the start.
+
+What you will be building
+
+You will work closely with the founders and early customers to design,
+build, and scale the core platform. This is not a narrow IC role. You will
+influence architecture, product direction, and how we work as a team.
+
+You will:
+
+- Work across the stack using TypeScript, React, Node.js, Prisma and
+  PostgreSQL
+- Help deliver intelligent, agentic operations across leasing, rent
+  reconciliation, maintenance, compliance, and finance
+- Integrate with core systems, fintech providers, and industry APIs
+- Leverage our distilled LLMs and predictive models through tools like
+  SageMaker, Bedrock, Arcade, and other AI-native infrastructure to power
+  smarter workflows
+- Own features end to end with full autonomy from design to deployment
+
+We do not expect you to be familiar with all the tools we use. What
+matters is your curiosity and ability to learn fast.
+
+We move fast, cut scope ruthlessly, and ship value daily via feature
+flags. You will be instrumental in shaping both the product and
+engineering culture from day one.
+
+What you'll bring
+
+- 8+ years in fast-paced engineering environments, ideally at a startup
+  or scale-up
+- Strong experience with TypeScript/JavaScript, React (or similar), and
+  Node.js
+- Exposure to infrastructure and backend (we use Prisma + PostgreSQL,
+  hosted on AWS Fargate via CDK)
+- Product-mindedness: you care about what you build and why it matters
+- AI-native thinking: excited about what AI can do and how to use it
+  practically (e.g. prompt chaining, function calling, semantic search)
+- High agency: you find problems, fix them, and communicate clearly
+- Generalist mindset: happy to jump between frontend, backend, infra,
+  and debugging
+- Strong collaboration: async and remote-first experience via Slack,
+  Notion, Linear, GitHub
+
+Nice to have:
+
+- Experience with scheduling systems, workflows, or proptech
+- Familiarity with Anthropic, Pinecone, or vector databases
+- Experience building internal tools or agentic flows using LangChain,
+  LlamaIndex, or similar
+
+What you will get
+
+- Founding-level equity
+- Highly competitive salary depending on location and experience
+- Work from anywhere
+- 35 days paid leave (incl. Bank Holidays)
+- Quarterly team off-sites to connect, build and reset

@@ -1,0 +1,75 @@
+{
+  "profile": "Senior Frontend / Product Engineer with 9+ years building TypeScript-first web products in Vue, Nuxt, React, and Node. Strong track record shipping user-facing features end to end, improving product quality, and building maintainable frontend systems with a focus on performance, reliability, observability, and cross-functional delivery. Comfortable owning vertical slices from discovery through production rollout, working remotely across EMEA time zones.",
+  "experiences": [
+    {
+      "experienceId": "exp-proxify-freelance",
+      "storyIds": [
+        "s-vue-ownership",
+        "s-nuxt4-fsd-migration",
+        "s-gitlab-release-pipeline",
+        "s-pinia-typed-stores"
+      ]
+    },
+    {
+      "experienceId": "exp-proxify-senior",
+      "storyIds": [
+        "s-ats-funnel-ownership",
+        "s-typed-api-collab",
+        "s-onboarding-portal",
+        "s-funnel-completion-lift"
+      ]
+    },
+    {
+      "experienceId": "exp-skeyl",
+      "storyIds": [
+        "s-react-spa-owner",
+        "s-node-lambda-utilities",
+        "s-legacy-modernization",
+        "s-lighthouse-40-to-90"
+      ]
+    }
+  ],
+  "skills": [
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Vue 3",
+    "Nuxt",
+    "Pinia",
+    "Next.js",
+    "Tailwind CSS",
+    "Zod",
+    "HTML",
+    "CSS",
+    "Storybook",
+    "Vitest",
+    "Playwright",
+    "MSW",
+    "Sentry",
+    "Datadog",
+    "Mixpanel",
+    "CI/CD",
+    "GitHub Actions",
+    "GitLab CI",
+    "Lighthouse CI",
+    "SonarQube",
+    "REST",
+    "GraphQL",
+    "AWS Lambda",
+    "S3",
+    "Capacitor"
+  ],
+  "archetypeUsed": "backend",
+  "keywordsInjected": [
+    "typescript",
+    "architecture",
+    "aws",
+    "scale",
+    "product",
+    "react",
+    "node.js",
+    "backend"
+  ],
+  "droppedStoryIds": [],
+  "profileFallbackUsed": false
+}
