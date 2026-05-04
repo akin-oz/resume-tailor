@@ -56,6 +56,23 @@ _SIGNALS: dict[Archetype, tuple[str, ...]] = {
         "full-stack",
         "end to end",
         "end-to-end",
+        # Explicit generalist / product-engineer language. A JD that calls
+        # the role "Senior Product Engineer" or asks for someone who works
+        # "across the stack" / "jumps between" layers is describing a
+        # fullstack role, even if it's also heavy on backend or frontend
+        # infrastructure keywords. Without these signals, infra-heavy
+        # generalist JDs (e.g. Node + Postgres + AWS + React) get classified
+        # as backend on raw keyword count.
+        "across the stack",
+        "across the entire stack",
+        "across the entire codebase",
+        "frontend, backend",
+        "front end, back end",
+        "front-end, back-end",
+        "jump between",
+        "generalist",
+        "polyglot",
+        "product engineer",
     ),
     "data": (
         "etl",

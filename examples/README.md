@@ -66,10 +66,12 @@ chosen bullets — `["typescript", "architecture", "aws", "scale", "product",
 "react", "node.js", "backend"]` — useful for sanity-checking that the JD
 actually moved the needle.
 
-(One caveat: the archetype heuristic detects `backend` for this JD because
-of the strong Node/Postgres/AWS/infra emphasis. Lette is explicitly a
-generalist "Senior Product Engineer" role. The user can override the
-archetype in the UI; the bullet selection holds either way.)
+The detected archetype is `fullstack`, which matches what Lette is
+actually hiring for: a "Senior Product Engineer" who works across the
+stack. (Earlier versions of the heuristic mis-classified this JD as
+`backend` on raw Node/Postgres keyword count; explicit cross-stack
+phrases — "across the stack", "generalist", "product engineer", "jump
+between" — now factor in alongside individual tech keywords.)
 
 ## Reproduce against the live API
 

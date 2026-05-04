@@ -35,3 +35,29 @@ def test_backend_frontend_tie_prefers_fullstack() -> None:
     # Equal counts of "react" and "postgres" — fullstack wins by preference.
     jd = "react react postgres postgres"
     assert detect_archetype(jd) == "fullstack"
+
+
+def test_cross_stack_signals_outweigh_backend_keywords() -> None:
+    # Multiple cross-stack signals beat raw backend keyword count. A real
+    # cross-stack JD usually clusters several such phrases — single-phrase
+    # cross-stack hints aren't strong enough to override on their own
+    # (deliberate; "across the stack" thrown into an otherwise backend
+    # JD is just a flourish).
+    jd = (
+        "Senior engineer. React, Node.js, Postgres. Own features end to "
+        "end. We want generalists happy to jump between frontend and "
+        "backend."
+    )
+    assert detect_archetype(jd) == "fullstack"
+
+
+def test_generalist_product_engineer_jd_is_fullstack() -> None:
+    # Mirrors the Lette JD pattern in examples/: "Senior Product Engineer"
+    # generalist role with TypeScript / React / Node / Postgres / AWS that
+    # used to be misclassified as backend on raw keyword frequency.
+    jd = (
+        "Senior Product Engineer. Generalist mindset, happy to jump between "
+        "frontend, backend, infra. TypeScript, React, Node.js, Prisma, "
+        "PostgreSQL on AWS. Own features end to end."
+    )
+    assert detect_archetype(jd) == "fullstack"

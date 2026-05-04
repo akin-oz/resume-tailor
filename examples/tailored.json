@@ -59,7 +59,7 @@
     "S3",
     "Capacitor"
   ],
-  "archetypeUsed": "backend",
+  "archetypeUsed": "fullstack",
   "keywordsInjected": [
     "typescript",
     "architecture",
