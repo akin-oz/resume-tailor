@@ -15,6 +15,9 @@ def test_healthz() -> None:
     assert body["status"] == "ok"
     assert body["pdf"] is True
     assert isinstance(body["openai"], bool)
+    # Lifetime counter of validator-dropped story IDs (camelCase wire format).
+    # Stays at 0 in stub-mode tests; field is always present.
+    assert isinstance(body["validatorDroppedStoryIdsTotal"], int)
 
 
 def test_tailor_smoke_camelcase_wire() -> None:

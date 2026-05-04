@@ -86,7 +86,7 @@ FastAPI gives us Pydantic v2 (the same domain types we'd want for validation, se
 | GET    | `/api/templates/{id}/preview`         | Template preview PNG (404 until `make previews` runs)               |
 | POST   | `/api/tailor`                         | Validated `TailorResult` (3–8s with AI; <100ms in stub mode)        |
 | POST   | `/api/render`                         | `text/html` or `application/pdf` (~200–500ms via WeasyPrint)        |
-| GET    | `/healthz`                            | `{ status, pdf, openai }`                                           |
+| GET    | `/healthz`                            | `{ status, pdf, openai, validatorDroppedStoryIdsTotal }`            |
 
 PDF rendering uses **WeasyPrint** — a Python library, no headless browser. Resumes are static paged content (no JS, simple CSS), exactly its sweet spot. WeasyPrint needs Cairo, Pango, and font libs at runtime; on Debian/Ubuntu install with `apt install libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 fonts-liberation`. The Dockerfile bakes them in.
 

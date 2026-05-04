@@ -36,6 +36,36 @@ from .tailor import _truncate_profile
 
 log = logging.getLogger(__name__)
 
+# Process-lifetime counter of bullet IDs the validator dropped because
+# the model returned an ID that wasn't in the input pool. Exposed via
+# /healthz so the "validators are real" claim is auditable from outside
+# the logs (and so a deployment can alarm on a sudden spike).
+_dropped_story_ids_total = 0
+
+
+def dropped_story_ids_total() -> int:
+    """Return the lifetime count of validator-dropped story IDs."""
+    return _dropped_story_ids_total
+
+
+def _record_dropped(dropped: list[StoryId], *, model: str) -> None:
+    """Increment the counter and emit one log line per dropped ID.
+
+    Pure increment + warn; safe to call with an empty list (no-op). Kept
+    separate from ``validate_experiences`` so the validator stays a pure
+    function and the side effect is easy to unit-test in isolation.
+    """
+    if not dropped:
+        return
+    global _dropped_story_ids_total
+    _dropped_story_ids_total += len(dropped)
+    for sid in dropped:
+        log.warning(
+            "tailor_ai dropped invented story_id",
+            extra={"story_id": sid, "model": model},
+        )
+
+
 _PROMPT_PATH = Path(__file__).resolve().parents[3] / "prompts" / "tailor_system.md"
 _DEFAULT_MODEL = "gpt-4o-mini"
 _DEFAULT_TIMEOUT = 30.0
@@ -191,6 +221,7 @@ async def tailor_ai(req: TailorRequest, *, client: AsyncOpenAI) -> TailorResult:
 
     pool_by_exp = {exp.id: {s.id for s in exp.stories} for exp in req.resume.experiences}
     cleaned, dropped = validate_experiences(parsed.experiences, pool_by_exp)
+    _record_dropped(dropped, model=model)
     profile, fallback = validate_profile(parsed.profile, req.resume.profile_seed)
 
     # Skills must come from the user's pool — same anti-hallucination contract

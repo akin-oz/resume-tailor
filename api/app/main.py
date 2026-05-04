@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .domain.models import HealthStatus
+from .domain.tailor_ai import dropped_story_ids_total
 from .routers import api_router
 
 app = FastAPI(title="Resume Tailor", version="0.1.0")
@@ -39,4 +40,5 @@ def healthz() -> HealthStatus:
         status="ok",
         pdf=True,
         openai=bool(os.getenv("OPENAI_API_KEY")),
+        validator_dropped_story_ids_total=dropped_story_ids_total(),
     )

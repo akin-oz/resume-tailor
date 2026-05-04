@@ -6,7 +6,9 @@ import httpx
 import pytest
 from app.domain.tailor_ai import (
     _AIExperience,
+    _record_dropped,
     _user_prompt,
+    dropped_story_ids_total,
     validate_experiences,
     validate_profile,
 )
@@ -68,6 +70,24 @@ def test_double_hyphen_falls_back() -> None:
 
 
 # --- validate_experiences -------------------------------------------------
+
+
+def test_record_dropped_increments_counter_and_logs(caplog: pytest.LogCaptureFixture) -> None:
+    before = dropped_story_ids_total()
+    with caplog.at_level("WARNING", logger="app.domain.tailor_ai"):
+        _record_dropped(["s-ghost-a", "s-ghost-b"], model="gpt-test")
+    assert dropped_story_ids_total() == before + 2
+    # One log line per dropped ID, each tagged with the story_id and model.
+    drop_records = [r for r in caplog.records if "dropped invented" in r.getMessage()]
+    assert len(drop_records) == 2
+    assert {r.__dict__["story_id"] for r in drop_records} == {"s-ghost-a", "s-ghost-b"}
+    assert all(r.__dict__["model"] == "gpt-test" for r in drop_records)
+
+
+def test_record_dropped_noop_on_empty() -> None:
+    before = dropped_story_ids_total()
+    _record_dropped([], model="gpt-test")
+    assert dropped_story_ids_total() == before
 
 
 def test_unknown_story_ids_dropped() -> None:

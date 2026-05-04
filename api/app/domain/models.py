@@ -314,6 +314,11 @@ class HealthStatus(_Strict):
     status: Literal["ok", "degraded"]
     pdf: bool
     openai: bool
+    # Lifetime count of bullet IDs the AI-mode validator dropped because
+    # the model returned an ID that wasn't in the input pool. Stays at 0
+    # in stub mode and on a clean process. A persistent non-zero value is
+    # the bullet-pool contract enforcing itself in production.
+    validator_dropped_story_ids_total: int = 0
 
 
 class Problem(_Strict):
