@@ -49,8 +49,8 @@ ignore = ["E501"]  # line length is enforced by formatter
 [tool.mypy]
 python_version = "3.11"
 strict = true
-mypy_path = "api"
-files = ["api/app"]
+mypy_path = ["api", "evals"]
+files = ["api/app", "evals"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
@@ -59,6 +59,6 @@ module = ["weasyprint", "weasyprint.*", "pypdfium2", "pypdfium2.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["api/tests"]
-pythonpath = ["api"]
+testpaths = ["api/tests", "evals"]
+pythonpath = ["api", "evals"]
 addopts = "-q"

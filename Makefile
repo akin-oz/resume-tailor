@@ -1,4 +1,4 @@
-.PHONY: install install-web dev api web test lint format format-check typecheck check previews build-web deploy-web deploy-api bootstrap-gcp
+.PHONY: install install-web dev api web test lint format format-check typecheck check previews eval build-web deploy-web deploy-api bootstrap-gcp
 
 install:
 	uv sync --all-extras
@@ -68,6 +68,12 @@ deploy-api:
 
 test:
 	uv run pytest
+
+# Standalone runner for the bullet-pool contract eval against the worked
+# example. The same checks also run as pytest under `make test`; this
+# target exists for the human-readable PASS/FAIL report.
+eval:
+	uv run python evals/check_provenance.py
 
 lint:
 	uv run ruff check .
