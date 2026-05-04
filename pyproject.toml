@@ -50,7 +50,7 @@ ignore = ["E501"]  # line length is enforced by formatter
 python_version = "3.11"
 strict = true
 mypy_path = ["api", "evals"]
-files = ["api/app", "evals"]
+files = ["api/app", "evals", "scripts"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]

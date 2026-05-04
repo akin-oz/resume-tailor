@@ -116,10 +116,10 @@ def build() -> None:
         return
     resume, jd = _fixture()
     tailored = tailor_stub(TailorRequest(resume=resume, jd=jd, settings=TailorSettings()))
-    for tpl_id in templates:
-        html = render_html(resume, tailored, tpl_id)
+    for tpl in templates.values():
+        html = render_html(resume, tailored, tpl.id)
         pdf_bytes = render_pdf(html)
-        target = TEMPLATES_DIR / tpl_id / "preview.png"
+        target = TEMPLATES_DIR / tpl.id / "preview.png"
         _pdf_first_page_to_png(pdf_bytes, target)
         print(f"  wrote {target.relative_to(ROOT)}")
 
