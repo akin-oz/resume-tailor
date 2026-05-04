@@ -16,6 +16,10 @@ The differentiator from "ask ChatGPT to write me a resume" is **provenance**:
 
 This thesis is the technical heart of the project. Every architectural choice should make sense in light of it.
 
+### Sibling project: [akin-oz/job-hunt](https://github.com/akin-oz/job-hunt) (local checkout: `~/job-hunt-local`)
+
+This repo is the *public extraction* of the bullet-pool method the user runs in `job-hunt` — a file-based job-search pipeline (ATS ingestion → `tracker/jobs.csv` → tailored resume per application via `scripts/tailor_resume.py`, anchored to `config/resume-truth-source.md`). The truth-source-as-source-of-facts pattern, the ID-only LLM contract, and the deterministic-fallback discipline all originate there. When making design calls, the implicit question is often *"would this break parity with how it works in job-hunt?"* The README positions this repo as the open-source surface of that sibling system — keep that framing intact in user-facing copy.
+
 ## Anti-hallucination contract
 
 The model never returns free text where a fact lives. It returns **IDs** the user authored.

@@ -8,6 +8,18 @@ Type your real experience once. Paste any JD. Pick a template. Get a clean, trut
 
 ---
 
+## Why this repo exists
+
+I run a file-based job-search pipeline against my own applications — [`akin-oz/job-hunt`](https://github.com/akin-oz/job-hunt): ATS feeds (Greenhouse / Ashby / Lever) → a tracker CSV → a per-job tailored resume generated from a hand-curated `resume-truth-source.md` of verified facts → cover letter → daily digest. Every bullet on every resume I send is verbatim-validated against that truth source, and the LLM's job is to *select and order* — never to write claims.
+
+That pipeline is mine end-to-end: the bullet pool is a 900-line Python dict baked into a script, the truth source is mine, the tracker is my own jobs.csv. But the **method** — verified bullet pool + ID-only LLM output + server-side provenance checks — is reusable.
+
+**Resume Tailor is that method, extracted, generalized, and deployed.** Anyone types their own bullets; the same anti-hallucination contract holds. The PDF parser exists so you can bootstrap the bullet pool from an existing resume in 30 seconds rather than typing 9 years of history into a form.
+
+If you're reading this as a hiring signal: this is what I do for myself first. The code in this repo went through real applications before it was generalized.
+
+---
+
 ## Run in 60 seconds
 
 ```bash
